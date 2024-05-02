@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema(
     userName: { type: String, required: true },
     password: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    favs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'books' }],
+    events: [{ type: mongoose.Schema.Types.ObjectId, ref: 'events' }],
     rol: {
       type: String,
       required: true,

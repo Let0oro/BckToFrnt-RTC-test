@@ -1,5 +1,5 @@
 const { generateKey } = require("../../utils/jwt");
-const Book = require("../models/book.model");
+const Book = require("../models/event.model");
 const User = require("../models/user.model");
 const bcrypt = require("bcrypt");
 

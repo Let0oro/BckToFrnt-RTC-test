@@ -1,5 +1,5 @@
 const userRouter = require('./api/routes/user.routes.js')
-const bookRouter = require('./api/routes/book.routes.js')
+const eventRouter = require('./api/routes/event.routes.js')
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 
@@ -23,7 +23,7 @@ server.use(cors({
   }));
 
 server.use('/api/v1/user', userRouter);
-server.use('/api/v1/books', bookRouter);
+server.use('/api/v1/events', eventRouter);
 
 server.use('*', (res, req, next) => {
     const err = new Error('Route not found');

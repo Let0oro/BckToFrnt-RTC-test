@@ -1,10 +1,11 @@
 {
-  "name": "bckfrnt-rtc",
+  "name": "bckfrnt-rtc-test",
   "version": "1.0.0",
   "description": "",
   "main": "./src/index.js",
   "scripts": {
-    "start": "nodemon ."
+    "start": "nodemon .",
+    "dev": "vite"
   },
   "keywords": [],
   "author": "",
