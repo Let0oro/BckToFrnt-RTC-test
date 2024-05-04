@@ -1,4 +1,7 @@
 const Event = require("../models/event.model");
+const User = require("../models/user.model");
+
+const existsID = (arr, id) => !!arr.some((i) => String(i) == String(id));
 
 const getEvents = async (req, res, next) => {
   try {
@@ -48,24 +51,69 @@ const postEvent = async (req, res, next) => {
 
 const updateEventById = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const newEvent = new Event(req.body);
-    newEvent._id = id;
-    console.log(newEvent);
+    let { id: eventId, status: shouldAdd } = req.params;
+    const { _id: userId } = req.user;
+    shouldAdd = !!(Number(shouldAdd));
+    let objByStatus;
 
-    const eventExist = await Event.findById(id);
-    if (!!!eventExist)
-      return res
-        .status(404)
-        .json({ message: `Events with ID:${id} don't exist` });
+    let userMod = await User.findById(userId).lean();
+    let eventMod = await Event.findById(eventId).lean();
 
-    const eventUpdated = await Event.findByIdAndUpdate(id, {"attendees": newEvent.attendees}, {
-      new: true,
+    if (!userMod || !eventMod) {
+      return res.status(404).json({
+        message: `${
+          !userMod
+            ? "User doesn't exist"
+            : `Events with ID:${eventId} don't exist`
+        }`,
+      });
+    }
+
+    const { attendees, confirmed } = eventMod;
+    const { events } = userMod;
+    const existBothId = !!(existsID(attendees, userId) && existsID(events, eventId))
+
+    if (existBothId && shouldAdd == "add") {
+      return res.status(400).json({ message: "User already is an attendee" });
+    }
+
+    if (!existBothId && !shouldAdd == "remove") {
+      return res.status(400).json({ message: "User isn't an attendee" });
+    }
+    
+    if (existsID(confirmed, userId) && shouldAdd == "confirm") {
+      return res.status(400).json({ message: "User already is confirmed" });
+    }
+
+    objByStatus = {
+      "add": [...attendees, userId],
+      "remove": attendees.filter(id => `${id}` !== `${userId}`)
+    }
+
+    eventMod = await Event.findByIdAndUpdate(
+      eventId,
+      shouldAdd == "confirm" ? { confirmed: [...confirmed, userId] } : { attendees: objByStatus[shouldAdd] },
+      { new: true }
+    );
+
+    objByStatus = {
+      "add": [...events, eventId],
+      "remove": events.filter(id => `${id}` !== `${eventId}`)
+    }
+
+    if (shouldAdd != "confirm") {
+      userMod = await User.findByIdAndUpdate(
+        userId,
+        { events: objByStatus[shouldAdd] },
+        { new: true }
+      );
+    }
+
+    return res.status(200).json({
+      message: `Event and User updated and ${shouldAdd ? "added" : "removed"}`,
+      eventAttendees: attendees,
+      userEvents: events,
     });
-    console.log(eventUpdated);
-    return res
-      .status(200)
-      .json({ message: "event updated", event: eventUpdated });
   } catch (err) {
     return res
       .status(400)

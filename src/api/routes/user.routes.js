@@ -15,7 +15,7 @@ userRouter.get("/", getUsers);
 userRouter.get("/:id", getUsersById);
 userRouter.post("/register", register);
 userRouter.post("/login", login);
-userRouter.put("/:id", isAuth, updateUser);
+userRouter.put("/add_event/:id", isAuth, updateUser);
 userRouter.post("/logout", isAuth, logoutUser);
 
 module.exports = userRouter;

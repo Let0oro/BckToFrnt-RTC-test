@@ -1,5 +1,5 @@
 const { generateKey } = require("../../utils/jwt");
-const Book = require("../models/event.model");
+const Event = require("../models/event.model");
 const User = require("../models/user.model");
 const bcrypt = require("bcrypt");
 
@@ -15,7 +15,7 @@ const getUsers = async (req, res, next) => {
 const getUsersById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const user = await User.findById(id).populate({path: "favs", model: Book}).lean();
+    const user = await User.findById(id).populate({path: "events", model: Event, select: 'title image location date description confirmed -_id'}).lean();
     return res.status(200).json(user);
   } catch (err) {
     return res.status(400).json({message: "Error getting user by id", error: err.message});
