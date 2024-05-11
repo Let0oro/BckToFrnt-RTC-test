@@ -2,7 +2,7 @@ const template = () => `
   <section id="events">
     ${
       localStorage.getItem("user") ? `
-        <h3>Welcome User</h3>` : `<h3>Please, log in</h3>`
+        <h3>Welcome ${JSON.parse(localStorage.getItem("user")).userName}</h3>` : `<h3>Please, log in</h3>`
     }
     <ul id="eventscontainer">
     </ul>
@@ -40,6 +40,7 @@ const handleAddToFavorites = async (eventId) => {
 
 const getEvents = async () => {
   const eventsData = await fetch("http://localhost:3000/api/v1/events/");
+  const userId = JSON.parse(localStorage.getItem("user"))._id;
   
   let events = await eventsData.json();
   events = events.events;
@@ -48,14 +49,23 @@ const getEvents = async () => {
   for (const event of events) {
     const li = document.createElement("li");
     li.innerHTML = `
-      <img src=${event.front} alt=${event.title} height="300"/>
-      <h3>Título: ${event.title}</h3>
-      <h4>Autor: ${event.author}</h4>
-      <h5>Year: ${event.year}</h5>
-      <h5>Editorial: ${event.editorial}</h5>
+      <img src=${event.image} alt=${event.title} height="300"/>
+      <h3>${event.title}</h3>
+      <h4>${event.date.map(date => new Date(date).toLocaleDateString(undefined, {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })).join(" - ")}</h4>
+      <h5>Lugar: ${event.location}</h5>
+      <h5>Precios: ${event.ticketPrice.map(price => `<li>${price.join(": ")}€</li>`).join(" ")}</h5>
       <h5>${"⭐".repeat(Math.floor(Number(event.rate)))}</h5>
-      <h5>${event.price}€</h5>
-      <button class="registerme-btn" data-event-id="${event._id}">❤️</button>
+      <h5>${event.description}</h5>
+      <button class="registerme-btn" data-event-id="${event._id}">${
+        event.confirmed.includes(event._id) && "I`m in"
+        || event.confirmed.includes(event._id) && "Still confirmating"
+        || "Register me!"
+        }</button>
     `;
     eventsContainer.appendChild(li);
 

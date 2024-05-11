@@ -20,4 +20,4 @@ document.querySelector("#myeventslink").addEventListener("click", () => MyEvents
 
 document.querySelector("#logoutlink").addEventListener("click", logout);
 
-Events();
+// Events();

@@ -1,4 +1,4 @@
-export default logout = async () => {
+const logout = async () => {
   try {
     const { email } = JSON.parse(localStorage.getItem("user"));
     const response = await fetch("http://localhost:3000/api/v1/user/logout", {
@@ -22,3 +22,4 @@ export default logout = async () => {
   }
 };
 
+export default logout;

@@ -1,6 +1,6 @@
-// Importa la función `Books` desde el módulo "./Books" para poder mostrarla
+// Importa la función `Events` desde el módulo "./Events" para poder mostrarla
 // una vez hayamos iniciado sesión
-import Books from "./Books";
+import Events from "./Events";
 
 // Define una función arrow llamada `template` que devuelve un tempalte string
 const template = () => `
@@ -52,7 +52,7 @@ const loginSubmit = async () => {
 
     alert(`Welcome ${username}`);
 
-    Books();
+    Events();
   } catch (err) {
     console.error({message: "Error en login client-side", error: err.message});
   }
