@@ -53,7 +53,8 @@ const updateEventById = async (req, res, next) => {
   try {
     let { id: eventId, status: shouldAdd } = req.params;
     const { _id: userId } = req.user;
-    shouldAdd = !!(Number(shouldAdd));
+    console.log(shouldAdd);
+    // shouldAdd = !!(Number(shouldAdd));
     let objByStatus;
 
     let userMod = await User.findById(userId).lean();
