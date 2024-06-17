@@ -48,7 +48,7 @@ const loginSubmit = async () => {
     const dataRes = await data.json();
     const {userName, password: pass, _id, email: mail} = dataRes.user;
 
-    localStorage.setItem("user", JSON.stringify({userName, password: pass, _id, email: mail}));
+    // localStorage.setItem("user", JSON.stringify({userName, password: pass, _id, email: mail}));
 
     alert(`Welcome ${username}`);
 

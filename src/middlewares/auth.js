@@ -3,7 +3,6 @@ const { verifyKey } = require("../utils/jwt");
 
 const isAuth = async (req, res, next) => {
   try {
-
     if (!!!req.cookies?.token || req.cookies?.token?.endsWith("null")) {
       return res.status(401).json({
         message: "Unauthorized.",

@@ -36,8 +36,9 @@ const register = async (req, res) => {
     await newUser.save();
 
     const token = generateKey(newUser._id);
-    res.cookie("token", null, { httpOnly: true, maxAge: (60*60*2400), sameSite: "lax" });
-    res.cookie("token", token, { httpOnly: true, maxAge: (60*60*2400), sameSite: "lax" });
+    res.cookie("token", null, { httpOnly: true, maxAge: (2600000), sameSite: "lax" });
+    res.cookie("token", token, { httpOnly: true, maxAge: (2600000), sameSite: "lax" });
+    res.cookie("user", `{userName: ${userName}, email: ${email}, password: ${password}}`, { httpOnly: true, maxAge: (2600000), sameSite: "lax" });
     res.status(201).json({ user: newUser, token });
   } catch (error) {
     console.error(error);
@@ -66,8 +67,9 @@ const login = async (req, res) => {
     }
 
     const token = generateKey(user._id);
-    res.cookie("token", null, { httpOnly: true, maxAge: (60*60*2400), sameSite: "lax" });
-    res.cookie("token", token, { httpOnly: true, maxAge: (60*60*2400), sameSite: "lax" });
+    res.cookie("token", null, { httpOnly: true, maxAge: (2600000), sameSite: "lax" });
+    res.cookie("token", token, { httpOnly: true, maxAge: (2600000), sameSite: "lax" });
+    res.cookie("user", `{userName: ${userName}, email: ${email}, password: ${password}}`, { httpOnly: true, maxAge: (2600000), sameSite: "lax" });
     res.status(200).json({ user, token });
   } catch (error) {
     console.error(error);
