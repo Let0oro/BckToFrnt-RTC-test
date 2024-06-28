@@ -26,6 +26,8 @@ const register = async (req, res) => {
   try {
     const { userName, email, password } = req.body;
 
+    console.log(password)
+
     const userDuplicated = await User.findOne({email});
 
     if (!!userDuplicated) {
@@ -39,8 +41,9 @@ const register = async (req, res) => {
     res.cookie("token", null, { httpOnly: true, maxAge: (2600000), sameSite: "lax" });
     res.cookie("token", token, { httpOnly: true, maxAge: (2600000), sameSite: "lax" });
     res.cookie("email", email, { httpOnly: false, maxAge: (2600000), sameSite: "lax", secure: true });
-    res.cookie("userName", user.userName, { httpOnly: false, maxAge: (2600000), sameSite: "lax", secure: true });
-    res.cookie("pass", password, { httpOnly: true, maxAge: (2600000), sameSite: "lax", secure: true });    res.status(201).json({ user: newUser, token });
+    res.cookie("userName", newUser.userName, { httpOnly: false, maxAge: (2600000), sameSite: "lax", secure: true });
+    res.cookie("pass", password, { httpOnly: false, maxAge: (2600000), sameSite: "lax", secure: true });    
+    res.status(201).json({ user: newUser, token });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error creating user" });
@@ -56,8 +59,6 @@ const login = async (req, res) => {
     if (!!!user) {
       return res.status(401).json({ message: "This user doesn't exists" });
     }
-
-    console.log("RESPONSE: ", res.cookie)
 
     // if (bcrypt.compareSync(password, user.password)) {
     //     const token = generateKey(user._id);

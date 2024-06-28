@@ -16,6 +16,7 @@ const template = () => `
 `;
 
 export const loginSubmit = async (username = null, password = null, email = null) => {
+  console.log('LOGINSUBMIT', username, password, email)
   username = username || document.querySelector("#username").value;
   password = password || document.querySelector("#password").value;
   email = email || document.querySelector("#email").value;

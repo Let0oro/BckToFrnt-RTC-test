@@ -1,3 +1,5 @@
+import nodeMail from "../utils/nodemailer";
+
 const template = (userName = null) => `
   <section id="events">
     ${
@@ -11,9 +13,8 @@ const template = (userName = null) => `
   </section>
 `;
 
-const handleUpdateEvent = async (userID, eventId, status) => {
+const handleUpdateEvent = async (userID, eventId, status, mail = null) => {
   try {
-
     const response = await fetch(
       `http://localhost:3000/api/v1/events/update/${eventId}/${status}`,
       {
@@ -31,6 +32,8 @@ const handleUpdateEvent = async (userID, eventId, status) => {
     if (response.ok) {
       const responseOk = await response.json();
       console.log(responseOk.message);
+      if (status === "add") nodeMail(mail);
+      alert({'add': 'Se te ha enviado un correo electrónico para confirmar la compra', 'remove': 'Se ha cancelado la compra de este evento'}[status])
     } else {
       console.error(response);
       const responseError = await response.json();
@@ -41,7 +44,7 @@ const handleUpdateEvent = async (userID, eventId, status) => {
   }
 };
 
-const getEvents = async (userID = null) => {
+const getEvents = async (userID = null, mail) => {
   const eventsData = await fetch("http://localhost:3000/api/v1/events/");
 
   let events = await eventsData.json();
@@ -69,7 +72,7 @@ const getEvents = async (userID = null) => {
         .join(" ")}</h5>
       <h5>${"⭐".repeat(Math.floor(Number(event.rate)))}</h5>
       <h5>${event.description}</h5>
-
+      
       ${!!(userID == null) ? '' : `
       <button class=${
         event.confirmed.includes(userID) || event.attendees.includes(userID)
@@ -94,7 +97,8 @@ const getEvents = async (userID = null) => {
     if (!!registerMe) {
       registerMe.addEventListener("click", () => {
         const eventId = registerMe.getAttribute("data-event-id");
-        handleUpdateEvent(userID, eventId, "add");
+        handleUpdateEvent(userID, eventId, "add", mail);
+        // getEvents(userID)
       });
     }
 
@@ -103,6 +107,7 @@ const getEvents = async (userID = null) => {
       unregisterMe.addEventListener("click", () => {
         const eventId = unregisterMe.getAttribute("data-event-id");
         handleUpdateEvent(userID, eventId, "remove");
+        // getEvents(userID)
       });
     }
   }
@@ -110,10 +115,10 @@ const getEvents = async (userID = null) => {
 
 const Events = (user = {userName: null, _id: null, email: null}) => {
   const {userName, _id: userID, email: mail} = user;
-  console.log()
+  console.log('EVENTS', user)
   document.querySelector("main").innerHTML = template(userName);
 
-  getEvents(userID);
+  getEvents(userID, mail);
 };
 
 export default Events;

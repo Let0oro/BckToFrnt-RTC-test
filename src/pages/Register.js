@@ -1,4 +1,5 @@
-import Login from "./Login";
+import Events from "./Events";
+import Login, { loginSubmit } from "./Login";
 
 const template = () => `
   <section id="register">
@@ -31,7 +32,11 @@ const registerSubmit = async () => {
     });
 
     if (response.ok) {
-      Login();
+      const json = await response.json();
+      console.log(json.user)
+      const {userName, _id, email} = json.user;
+      // loginSubmit(username, password, email)
+      Events({userName, _id, email});
     } else {
       const errorMessage = await response.json();
       console.error("Error:", errorMessage);
