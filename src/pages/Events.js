@@ -1,9 +1,9 @@
-const template = () => `
+const template = (userName = null) => `
   <section id="events">
     ${
-      localStorage.getItem("user")
+      !(userName == null)
         ? `
-        <h3>Welcome ${JSON.parse(localStorage.getItem("user")).userName}</h3>`
+        <h3>Welcome ${userName}</h3>`
         : `<h3>Please, log in</h3>`
     }
     <ul id="eventscontainer">
@@ -11,9 +11,8 @@ const template = () => `
   </section>
 `;
 
-const handleUpdateEvent = async (eventId, status) => {
+const handleUpdateEvent = async (userID, eventId, status) => {
   try {
-    const userId = JSON.parse(localStorage.getItem("user"))._id;
 
     const response = await fetch(
       `http://localhost:3000/api/v1/events/update/${eventId}/${status}`,
@@ -24,7 +23,7 @@ const handleUpdateEvent = async (eventId, status) => {
         },
         credentials: "include",
         body: JSON.stringify({
-          attendees: [userId],
+          attendees: [userID],
         }),
       }
     );
@@ -38,13 +37,12 @@ const handleUpdateEvent = async (eventId, status) => {
       console.error(responseError);
     }
   } catch (error) {
-    console.error("Error inesperado", error);
+    console.error("Unexpected error", error);
   }
 };
 
-const getEvents = async () => {
+const getEvents = async (userID = null) => {
   const eventsData = await fetch("http://localhost:3000/api/v1/events/");
-  const userId = JSON.parse(localStorage.getItem("user"))._id;
 
   let events = await eventsData.json();
   events = events.events;
@@ -71,17 +69,21 @@ const getEvents = async () => {
         .join(" ")}</h5>
       <h5>${"⭐".repeat(Math.floor(Number(event.rate)))}</h5>
       <h5>${event.description}</h5>
+
+      ${!!(userID == null) ? '' : `
       <button class=${
-        event.confirmed.includes(userId) || event.attendees.includes(userId)
+        event.confirmed.includes(userID) || event.attendees.includes(userID)
           ? "none-btn"
           : "registerme-btn"
       } data-event-id="${event._id}">${
-      (event.confirmed.includes(userId) && "I`m in") ||
-      (event.attendees.includes(userId) && "Still confirmating") ||
+      (event.confirmed.includes(userID) && "I`m in") ||
+      (event.attendees.includes(userID) && "Still confirmating") ||
       "Register me!"
     }</button>
+      `}
+
       ${
-        event.confirmed.includes(userId) || event.attendees.includes(userId)
+        event.confirmed.includes(userID) || event.attendees.includes(userID)
           ? `<button class="unregisterme-btn" data-event-id="${event._id}">I won't go</button>`
           : ""
       }
@@ -92,7 +94,7 @@ const getEvents = async () => {
     if (!!registerMe) {
       registerMe.addEventListener("click", () => {
         const eventId = registerMe.getAttribute("data-event-id");
-        handleUpdateEvent(eventId, "add");
+        handleUpdateEvent(userID, eventId, "add");
       });
     }
 
@@ -100,16 +102,18 @@ const getEvents = async () => {
     if (!!unregisterMe) {
       unregisterMe.addEventListener("click", () => {
         const eventId = unregisterMe.getAttribute("data-event-id");
-        handleUpdateEvent(eventId, "remove");
+        handleUpdateEvent(userID, eventId, "remove");
       });
     }
   }
 };
 
-const Events = () => {
-  document.querySelector("main").innerHTML = template();
+const Events = (user = {userName: null, _id: null, email: null}) => {
+  const {userName, _id: userID, email: mail} = user;
+  console.log()
+  document.querySelector("main").innerHTML = template(userName);
 
-  getEvents();
+  getEvents(userID);
 };
 
 export default Events;

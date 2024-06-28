@@ -38,8 +38,9 @@ const register = async (req, res) => {
     const token = generateKey(newUser._id);
     res.cookie("token", null, { httpOnly: true, maxAge: (2600000), sameSite: "lax" });
     res.cookie("token", token, { httpOnly: true, maxAge: (2600000), sameSite: "lax" });
-    res.cookie("user", `{userName: ${userName}, email: ${email}, password: ${password}}`, { httpOnly: true, maxAge: (2600000), sameSite: "lax" });
-    res.status(201).json({ user: newUser, token });
+    res.cookie("email", email, { httpOnly: false, maxAge: (2600000), sameSite: "lax", secure: true });
+    res.cookie("userName", user.userName, { httpOnly: false, maxAge: (2600000), sameSite: "lax", secure: true });
+    res.cookie("pass", password, { httpOnly: true, maxAge: (2600000), sameSite: "lax", secure: true });    res.status(201).json({ user: newUser, token });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error creating user" });
@@ -56,6 +57,8 @@ const login = async (req, res) => {
       return res.status(401).json({ message: "This user doesn't exists" });
     }
 
+    console.log("RESPONSE: ", res.cookie)
+
     // if (bcrypt.compareSync(password, user.password)) {
     //     const token = generateKey(user._id);
     //     return res.status(200).json({ token, user })
@@ -66,10 +69,13 @@ const login = async (req, res) => {
       return res.status(401).json({ message: "Invalid password provided" });
     }
 
+
     const token = generateKey(user._id);
     res.cookie("token", null, { httpOnly: true, maxAge: (2600000), sameSite: "lax" });
-    res.cookie("token", token, { httpOnly: true, maxAge: (2600000), sameSite: "lax" });
-    res.cookie("user", `{userName: ${userName}, email: ${email}, password: ${password}}`, { httpOnly: true, maxAge: (2600000), sameSite: "lax" });
+    res.cookie("token", token, { httpOnly: true, maxAge: (2600000), sameSite: "lax", resave: true });
+    res.cookie("email", email, { httpOnly: false, maxAge: (2600000), sameSite: "lax", resave: true });
+    res.cookie("userName", user.userName, { httpOnly: false, maxAge: (2600000), sameSite: "lax", resave: true });
+    res.cookie("pass", password, { httpOnly: false, maxAge: (2600000), sameSite: "lax", resave: true });
     res.status(200).json({ user, token });
   } catch (error) {
     console.error(error);

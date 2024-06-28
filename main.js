@@ -2,7 +2,7 @@ import "./style.css";
 
 import Events from "./src/pages/Events";
 
-import Login from "./src/pages/Login";
+import Login, { loginSubmit } from "./src/pages/Login";
 
 import Register from "./src/pages/Register";
 
@@ -20,4 +20,9 @@ document.querySelector("#myeventslink").addEventListener("click", () => MyEvents
 
 document.querySelector("#logoutlink").addEventListener("click", logout);
 
-// Events();
+
+if (document.cookie.length) {
+    let cookieObj = document.cookie.replace('%40', '@').split(';').map(v => v.split('=')[1])
+    const [email, name, password] = cookieObj;
+    loginSubmit(name, password, email)
+}

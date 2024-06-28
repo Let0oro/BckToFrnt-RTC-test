@@ -5,6 +5,8 @@ const existsID = (arr, id) => !!arr.some((i) => String(i) == String(id));
 
 const getEvents = async (req, res, next) => {
   try {
+
+    console.log('EV. REQ', req)
     const events = await Event.find().lean();
     return res.status(200).json({ events });
   } catch (err) {
