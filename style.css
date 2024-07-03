@@ -4,7 +4,7 @@
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
+  color: #ffffffde;
   background-color: #242424;
 
   font-synthesis: none;
@@ -14,6 +14,7 @@
 }
 
 a {
+  display: inline-block;
   font-weight: 500;
   color: #646cff;
   text-decoration: inherit;
@@ -33,6 +34,37 @@ body {
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
+}
+
+ul {
+  list-style: none;
+}
+
+.tit {
+  display: inline-flex;
+  color: #646cff;
+  background-color: #ccc4;
+  padding: 2px;
+  border-radius: 8px;
+}
+
+.prices {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+
+  & .prices-ticket{
+    border: 1px solid currentColor;
+    padding: 4px 8px;
+    border-radius: 4px;
+    width: max-content;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #ccc4;
+    }
+  }
 }
 
 #app {
@@ -93,4 +125,26 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+.modal {
+  position: absolute;
+  display: none;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50% -50%);
+  width: 60%;
+  height: 50%;
+  background-color: #24242433;
+  backdrop-filter: blur(10px);
+  color: black;
+  padding: 10px;
+  z-index: 999999999;
+  box-sizing: revert;
+  border: 100lvh solid #00000080;
+  border-radius: 10px;
+  text-align: center;
 }

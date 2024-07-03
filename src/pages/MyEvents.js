@@ -1,29 +1,28 @@
+import { generateEvent } from "#utils/eventsUtils";
+
 const template = () => `
 <section id="myevents">
-  <ul id="eventscontainer">
+  <h3>Events purchased</h3>
+  <ul id="events-purchased">
+  </ul>
+  <hr/>
+  <h3>Events saved</h3>
+  <ul id="events-saved">
   </ul>
 </section>
 `;
 
 const getMyEvents = async () => {
-  const userId = JSON.parse(localStorage.getItem("user")._id);
-  const booksData = await fetch(`http://localhost:3000/api/v1/user/${userId}`);
-  const data = await booksData.json();
-  const books = data.favs;
-  const booksContainer = document.querySelector("#eventscontainer");
-  for (const book of books) {
-    const li = document.createElement("li");
-    li.innerHTML = `
-    <img src=${book.front} alt=${book.title} height="300"/>
-    <h3>Título: ${book.title}</h3>
-    <h4>Autor: ${book.author}</h4>
-    <h5>Year: ${book.year}</h5>
-    <h5>Editorial: ${book.editorial}</h5>
-    <h5>${"⭐".repeat(Math.floor(Number(book.rate)))}</h5>
-    <h5>${book.price}€</h5>
-    `;
-    booksContainer.appendChild(li);
-  }
+  const eventsData = await fetch(
+    `http://localhost:3000/api/v1/events/my_events`,
+    { credentials: "include" }
+  );
+  const {events: purchased, eventsSaved: saved, userID} = await eventsData.json();
+  const eventsPuchased = document.querySelector("#events-purchased");
+  const eventsSaved = document.querySelector("#events-saved");
+
+  purchased.forEach((event) => generateEvent(event, eventsPuchased, userID));
+  saved.forEach((event) => generateEvent(event, eventsSaved, userID));
 };
 
 const MyEvents = () => {

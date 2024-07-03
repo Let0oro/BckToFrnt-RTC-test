@@ -1,23 +1,27 @@
 import Events from "./Events";
 
-const template = () => `
-  <section id="login">
-    ${
-      localStorage.getItem("user")
-        ? `<h2>You are already logged<h2>`
-        : `<form>
-          <input type="text" placeholder="Username" id="username"/>
-          <input type="email" placeholder="Email" id="email"/>
-          <input type="password" id="password" placeholder="Password" />
-          <button id="loginbtn">Login</button>
-        </form>`
-    }
-  </section>
-`;
+const template = () => {
 
-export const loginSubmit = async (username = null, password = null, email = null) => {
-  console.log('LOGINSUBMIT', username, password, email)
-  username = username || document.querySelector("#username").value;
+  let cookieObj = document.cookie.replace('%40', '@').split(';').map(v => v.split('=')[1])
+    const [email, name, password] = cookieObj;
+
+  return `<section id="login">
+  ${
+    !!document.cookie.length
+    ? `<h2>You are already logged<h2>`
+    : `<form>
+    <input type="text" placeholder="Username" id="username"/>
+    <input type="email" placeholder="Email" id="email"/>
+    <input type="password" id="password" placeholder="Password" />
+    <button id="loginbtn">Login</button>
+    </form>`
+    }
+    </section>
+    `;
+}
+
+export const loginSubmit = async (userName = null, password = null, email = null) => {
+  userName = userName || document.querySelector("#username").value;
   password = password || document.querySelector("#password").value;
   email = email || document.querySelector("#email").value;
 
@@ -29,17 +33,18 @@ export const loginSubmit = async (username = null, password = null, email = null
       credentials: "include",
       method: "POST",
       body: JSON.stringify({
-        userName: username,
+        userName,
         email,
         password,
       }),
     });
 
+    const dataRes = await data.json();
     if (data.status >= 300) {
       alert("Invalid conection with server");
+      return 
     }
 
-    const dataRes = await data.json();
     alert(`Welcome ${username}`);
 
     Events(dataRes.user);

@@ -9,6 +9,10 @@ const eventSchema = new mongoose.Schema(
         { type: Number, required: true },
       ],
     ],
+    ticketPticeSelected: [
+      { type: String, required: true },
+      { type: Number, required: true },
+    ],
     image: { type: String, required: true },
     location: { type: String, required: true },
     date: [
@@ -16,8 +20,8 @@ const eventSchema = new mongoose.Schema(
       { type: Date, required: false },
     ],
     description: { type: String, required: true },
-    attendees: [{ type: mongoose.Schema.Types.ObjectId, ref: "users" }],
-    confirmed: [{ type: mongoose.Schema.Types.ObjectId, ref: "users" }],
+    attendees: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    confirmed: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   {
     timestamps: true,

@@ -1,5 +1,8 @@
+const jwt = require("jsonwebtoken");
+const nodeMail = require("../../utils/nodemailer");
 const Event = require("../models/event.model");
 const User = require("../models/user.model");
+require('dotenv').config({path: '../../../.env'});
 
 const existsID = (arr, id) => !!arr.some((i) => String(i) == String(id));
 
@@ -27,6 +30,31 @@ const getEventsById = async (req, res, next) => {
   }
 };
 
+const getMyEvents = async (req, res, next) => {
+  const reqHeadCookies = req.headers?.cookie?.split(';').find(v => v.startsWith("accessToken="))?.split("accessToken=")[1];
+
+  const accesstoken = reqHeadCookies || req.cookies?.accessToken;
+  if (!accesstoken) {
+    return res.status(401).json({ message: 'No se proporcionó token de autenticación' });
+  }
+
+  try {
+    const decodedUser = jwt.verify(accesstoken, process.env.ACCESS_TOKEN_SECRET);
+
+    const userID = decodedUser._id;
+
+    const userEvents = await User.findById(userID).populate('eventsSaved events');
+    
+    if (!userEvents) {
+      return res.status(404).json({message: "This user don't have events saved or bought"});
+    }
+
+    return res.status(200).json({userID,events: userEvents.events, eventsSaved: userEvents.eventsSaved});
+  } catch (error) {
+    return res.status(400).json({message: error.message});
+  }
+  }
+
 const postEvent = async (req, res, next) => {
   try {
     const { title, editorial, author } = req.body;
@@ -52,11 +80,9 @@ const postEvent = async (req, res, next) => {
 
 const updateEventById = async (req, res, next) => {
   try {
-    let { id: eventId, status: shouldAdd } = req.params;
-    const { _id: userId } = req.user;
-    console.log(shouldAdd);
-    // shouldAdd = !!(Number(shouldAdd));
-    let objByStatus;
+    let { id: eventId, status: action } = req.params;
+    const { _id: userId, email, userName } = req.user;
+    let objByAction;
 
     let userMod = await User.findById(userId).lean();
     let eventMod = await Event.findById(eventId).lean();
@@ -71,50 +97,52 @@ const updateEventById = async (req, res, next) => {
       });
     }
 
-    const { attendees, confirmed } = eventMod;
-    const { events } = userMod;
+    const { attendees, confirmed, title, ticketPrice } = eventMod;
+    const { eventsSaved } = userMod;
     const existBothId = !!(existsID(attendees, userId) && existsID(events, eventId))
 
-    if (existBothId && shouldAdd == "add") {
+    if (existBothId && action == "add") {
       return res.status(400).json({ message: "User already is an attendee" });
     }
 
-    if (!existBothId && !shouldAdd == "remove") {
+    if (!existBothId && !action == "remove") {
       return res.status(400).json({ message: "User isn't an attendee" });
     }
     
-    if (existsID(confirmed, userId) && shouldAdd == "confirm") {
+    if (existsID(confirmed, userId) && action == "confirm") {
       return res.status(400).json({ message: "User already is confirmed" });
     }
 
-    objByStatus = {
+    objByAction = {
       "add": [...attendees, userId],
       "remove": attendees.filter(id => `${id}` !== `${userId}`)
     }
 
     eventMod = await Event.findByIdAndUpdate(
       eventId,
-      shouldAdd == "confirm" ? { confirmed: [...confirmed, userId] } : { attendees: objByStatus[shouldAdd] },
+      action == "confirm" ? { confirmed: [...confirmed, userId] } : { attendees: objByAction[action] },
       { new: true }
     );
 
-    objByStatus = {
-      "add": [...events, eventId],
-      "remove": events.filter(id => `${id}` !== `${eventId}`)
+    objByAction = {
+      "add": [...eventsSaved, eventId],
+      "remove": eventsSaved.filter(id => `${id}` !== `${eventId}`)
     }
 
-    if (shouldAdd != "confirm") {
+    if (action === "confirm") nodeMail(email, userName, title, ticketPrice, (eventId +'-'+ id.splice(id.length-4, 2, '.')));
+
+    if (action != "confirm") {
       userMod = await User.findByIdAndUpdate(
         userId,
-        { events: objByStatus[shouldAdd] },
+        { eventsSaved: objByAction[action] },
         { new: true }
       );
     }
 
     return res.status(200).json({
-      message: `Event and User updated and ${shouldAdd ? "added" : "removed"}`,
+      message: `Event and User updated and ${action ? "added" : "removed"}`,
       eventAttendees: attendees,
-      userEvents: events,
+      userEvents: eventsSaved,
     });
   } catch (err) {
     return res
@@ -141,6 +169,7 @@ const deleteEvent = async (req, res, next) => {
 module.exports = {
   getEvents,
   getEventsById,
+  getMyEvents,
   updateEventById,
   postEvent,
   deleteEvent,

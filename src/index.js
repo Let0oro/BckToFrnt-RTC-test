@@ -2,6 +2,7 @@ const userRouter = require('./api/routes/user.routes.js')
 const eventRouter = require('./api/routes/event.routes.js')
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+require('dotenv').config({path: '../.env'});
 
 const express = require('express');
 const PORT = 3000;
@@ -15,17 +16,18 @@ server.use(express.json());
 server.use(express.urlencoded({extended: false}));
 server.use(cookieParser());
 server.use(cors({
-    origin: ['http://localhost:5173'],
+    origin: process.env.CLIENT_URL,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     headers: ['Content-Type', 'Authorization'],
     exposedHeaders: ['Content-Range'],
+    secure: true,
     credentials: true
   }));
 
 server.use('/api/v1/user', userRouter);
 server.use('/api/v1/events', eventRouter);
 
-server.use('*', (res, req, next) => {
+server.use('*', (req, res, next) => {
     const err = new Error('Route not found');
     err.status = 404;
     next(err);
