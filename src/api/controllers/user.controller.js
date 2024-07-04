@@ -203,11 +203,21 @@ const updateUser = async (req, res, next) => {
 };
 
 const logoutUser = async (req, res) => {
-  try{
-    const { userName } = req.body;
 
-    await User.findByIdAndUpdate(
-      req.user._id,
+  const reqHeadCookies = req.headers?.cookie?.split(';').find(v => v.startsWith("accessToken="))?.split("accessToken=")[1];
+
+  const token = reqHeadCookies || req.cookies?.accessToken;
+  if (!token) {
+    return res.status(401).json({ message: 'No se proporcionó token de autenticación' });
+  }
+  
+  try {
+    const decodedToken = await jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+
+    const userId = decodedToken._id;
+
+    const { userName } = await User.findByIdAndUpdate(
+      userId,
       {
         $set: {refreshToken: undefined}
       },

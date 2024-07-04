@@ -22,16 +22,16 @@ async function init() {
   const isLoggedIn = await checkLoggedInStatus();
   if (!!isLoggedIn) {
     const { userName, _id } = isLoggedIn.user;
-    document.getElementById("logoutlink").style.display = "none";
-    document.getElementById("myeventslink").style.display = "inline-block";
-    document.querySelector("#loginlink").style.display = "none"
-    document.querySelector("#registerlink").style.display = "none"
+    // document.getElementById("logoutlink").style.display = "none";
+    // document.getElementById("myeventslink").style.display = "inline-block";
+    // document.querySelector("#loginlink").style.display = "none"
+    // document.querySelector("#registerlink").style.display = "none"
     return { userName, _id };
   } else {
-    document.getElementById("logoutlink").style.display = "inline-block";
-    document.querySelector("#loginlink").style.display = "inline-block"
-    document.querySelector("#registerlink").style.display = "inline-block"
-    document.getElementById("myeventslink").style.display = "none";
+    // document.getElementById("logoutlink").style.display = "inline-block";
+    // document.querySelector("#loginlink").style.display = "inline-block"
+    // document.querySelector("#registerlink").style.display = "inline-block"
+    // document.getElementById("myeventslink").style.display = "none";
   }
 }
 

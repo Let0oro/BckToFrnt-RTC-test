@@ -21,17 +21,29 @@ const getEvents = async (userID = null) => {
   events = events.events;
   const eventsContainer = document.querySelector("#eventscontainer");
 
-  events.forEach(event => generateEvent(event, eventsContainer, userID, null, true))
+  events.forEach((event) =>
+    generateEvent(event, eventsContainer, userID, null, true)
+  );
 };
 
-const Events = async (user = { userName: null, _id: null}) => {
-
+const Events = async (user = { userName: null, _id: null }) => {
   const cookiesValues = await init();
-  if (!user._id && !cookiesValues) return;
-    const { userName, _id: userID } = !!user._id ? user : cookiesValues;
-    document.querySelector("main").innerHTML = template(userName);
-    
-    await getEvents(userID);
+
+  if (user._id || cookiesValues) {
+    user = (!!user._id ? user : cookiesValues);
+    document.getElementById("logoutlink").style.display = "inline-block";
+    document.getElementById("loginlink").style.display = "none";
+    document.getElementById("myeventslink").style.display = "inline-block";
+    document.getElementById("registerlink").style.display = "none";
+  } else {
+    document.getElementById("logoutlink").style.display = "none";
+    document.getElementById("loginlink").style.display = "inline-block";
+    document.getElementById("myeventslink").style.display = "none";
+    document.getElementById("registerlink").style.display = "inline-block";
+  }
+  
+  document.querySelector("main").innerHTML = template(user.userName);
+  await getEvents(user.userID);
 };
 
 export default Events;
