@@ -25,10 +25,12 @@ const getMyEvents = async () => {
   const eventsPurchased = document.querySelector("#events-purchased");
   const eventsSaved = document.querySelector("#events-saved");
 
+  console.log(saved)
+
   purchased.forEach(({ _id: event, ticketPriceSelected }) =>
-    generateEvent(event, eventsPurchased, userID, ticketPriceSelected)
+    generateEvent(event, eventsPurchased, userID, ticketPriceSelected, false)
   );
-  saved.forEach((event) => generateEvent(event, eventsSaved, userID));
+  saved.forEach((event) => generateEvent(event, eventsSaved, userID, null, false));
 };
 
 const MyEvents = () => {

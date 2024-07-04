@@ -21,7 +21,7 @@ const getEvents = async (userID = null) => {
   events = events.events;
   const eventsContainer = document.querySelector("#eventscontainer");
 
-  events.forEach(event => generateEvent(event, eventsContainer, userID))
+  events.forEach(event => generateEvent(event, eventsContainer, userID, null, true))
 };
 
 const Events = async (user = { userName: null, _id: null}) => {

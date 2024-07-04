@@ -55,7 +55,7 @@ ul {
   justify-content: center;
 
   & .prices-ticket{
-    border: 1px solid currentColor;
+    border: 1px solid transparent;
     padding: 4px 8px;
     border-radius: 4px;
     width: max-content;
@@ -63,8 +63,17 @@ ul {
 
     &:hover {
       background-color: #ccc4;
+      border: 1px solid #646cff;
+
+      & .tit {
+        color: black;
+      }
     }
   }
+}
+
+h4 {
+  margin-bottom: .5rem;
 }
 
 #app {

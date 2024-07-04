@@ -1,4 +1,5 @@
 import Events from "#pages/Events";
+import MyEvents from "#pages/MyEvents";
 
 const handleUpdateEvent = async (userID, eventId, status, mail = null) => {
   try {
@@ -36,10 +37,8 @@ const handleUpdateEvent = async (userID, eventId, status, mail = null) => {
   }
 };
 
-export const generateEvent = (event, container, userID = null, ticketSelected = null) => {
+export const generateEvent = (event, container, userID = null, ticketSelected = null, isFromGeneral) => {
   const li = document.createElement("li");
-
-  console.log("EVENT in Generate Events Function", ticketSelected)
 
   li.innerHTML = `
       <img src=${event.image} alt=${event.title} height="300"/>
@@ -54,8 +53,8 @@ export const generateEvent = (event, container, userID = null, ticketSelected = 
           })
         )
         .join(" - ")}</h4>
-      <h5><span class="tit" >Lugar:</span> ${event.location}</h5>
-      <h5 class="tit" >Precios</h5> <div class="prices">${!ticketSelected ? event.ticketPrice
+      <h4><span class="tit" >Lugar:</span> ${event.location}</h4>
+      <h4 class="tit" >Precios</h4> <div class="prices">${!ticketSelected ? event.ticketPrice
         .map(
           (price) =>
             `<button class="prices-ticket">${price[0]}: <span class="tit">${price[1]}€</span></button>`
@@ -76,7 +75,7 @@ export const generateEvent = (event, container, userID = null, ticketSelected = 
   ${
     !!event.attendees.includes(userID)
       ? `<button 
-      class="unsave-btn" data-event-id="${event._id}">Saved!</button>`
+      class="unsave-btn" data-event-id="${event._id}">Unsave!</button>`
       : !!userID
       ? `<button 
       class="save-btn" data-event-id="${event._id}">Save this!</button>`
@@ -95,7 +94,7 @@ export const generateEvent = (event, container, userID = null, ticketSelected = 
         btn.addEventListener("click", () => {
           const eventId = btn.getAttribute("data-event-id");
           handleUpdateEvent(userID, eventId, ["save", "unsave"][i]);
-          Events();
+          isFromGeneral ? Events() : MyEvents();
         })
     );
   }
@@ -106,7 +105,7 @@ export const generateEvent = (event, container, userID = null, ticketSelected = 
       btn.addEventListener("click", (e) => {
         const [selectedTitle, selectedPrice] = e.target.textContent.split(': ')
         const eventID = event._id;
-        
+
         if (
           confirm(
             `Do you want to purchase the ${selectedTitle} ticket of ${event.title}?`
@@ -138,6 +137,7 @@ export const generateEvent = (event, container, userID = null, ticketSelected = 
       const eventId = unRegisterBtn.getAttribute("data-event-id");
       if (confirm(`Do you want to cancel your purchase at ${event.title}?`))
         handleUpdateEvent(userID, eventId, "remove");
+        isFromGeneral ? Events() : MyEvents();
     });
   }
 };

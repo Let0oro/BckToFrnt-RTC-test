@@ -52,11 +52,11 @@ const getMyEvents = async (req, res, next) => {
 
     const { eventsSaved: userEventsSaved } = await User.findById(userID)
       .populate({
-        path: "eventsSaved._id",
+        path: "eventsSaved",
         model: Event,
-        select: {
-          title: true,
-        },
+        // select: {
+        //   _id: false,
+        // },
       })
       .select("eventsSaved")
       .lean();
@@ -64,7 +64,7 @@ const getMyEvents = async (req, res, next) => {
       .populate({
         path: "events._id",
         model: Event,
-        // select: "title",
+        // select: "-_id",
       })
       .select("events")
       .lean();
@@ -109,10 +109,6 @@ const postEvent = async (req, res, next) => {
 };
 
 const updateEventById = async (req, res, next) => {
-  if (!req.params.id)
-    return res.status(400).json({
-      message: "Error getting the ID from params at updateEvent function",
-    });
 
   const { id: eventId, status: action } = req.params;
   const { _id: userId, email, userName } = req.user;
@@ -146,7 +142,7 @@ const updateEventById = async (req, res, next) => {
       return res.status(400).json({ message: "User already is an attendee" });
     }
 
-    if (!existBothId && !action == "remove") {
+    if (!existBothId && !action == "unsave") {
       return res.status(400).json({ message: "User isn't an attendee" });
     }
 
@@ -154,15 +150,17 @@ const updateEventById = async (req, res, next) => {
       return res.status(400).json({ message: "User already is confirmed" });
     }
 
-    if (!existsID(confirmed, userId) && action == "confirm") {
+    if (!existsID(confirmed, userId) && action == "remove") {
       return res.status(400).json({ message: "User isn't an confirmed" });
     }
 
+    console.log('confirmed', confirmed);
+
     objByAction = {
-      save: { attendees: [...attendees, userId] },
+      save: { $addToSet: { attendees: [...attendees, userId] } },
       unsave: { attendees: attendees.filter((id) => `${id}` !== `${userId}`) },
       remove: { confirmed: confirmed.filter((id) => `${id}` !== `${userId}`) },
-      confirm: { confirmed: [...confirmed, userId] },
+      confirm: { $addToSet: { confirmed: [...confirmed, userId] } },
     };
 
     await Event.findByIdAndUpdate(eventId, objByAction[action], { new: true });
@@ -189,7 +187,7 @@ const updateEventById = async (req, res, next) => {
     //     userName,
     //     title,
     //     ticketPrice,
-    //     ([selectedTitle, Number(selectedPrice)]),
+    //     [selectedTitle, Number(selectedPrice)],
     //     eventId + "-" + userId.splice(userId.length - 4, 2, ".")
     //   );
 
