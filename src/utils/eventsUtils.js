@@ -1,3 +1,5 @@
+import Events from "#pages/Events";
+
 const handleUpdateEvent = async (userID, eventId, status, mail = null) => {
   try {
     const response = await fetch(
@@ -17,12 +19,13 @@ const handleUpdateEvent = async (userID, eventId, status, mail = null) => {
     if (response.ok) {
       const responseOk = await response.json();
       console.log(responseOk.message);
-      alert(
-        {
-          add: "Evento guardado en tus eventos",
-          remove: "Se ha cancelado la compra de este evento",
-        }[status]
-      );
+      if (status == "save" || status == "remove")
+        alert(
+          {
+            save: "Evento guardado en tus eventos",
+            remove: "Se ha cancelado la compra de este evento",
+          }[status]
+        );
     } else {
       console.error(response);
       const responseError = await response.json();
@@ -33,8 +36,11 @@ const handleUpdateEvent = async (userID, eventId, status, mail = null) => {
   }
 };
 
-export const generateEvent = (event, container, userID = null) => {
+export const generateEvent = (event, container, userID = null, ticketSelected = null) => {
   const li = document.createElement("li");
+
+  console.log("EVENT in Generate Events Function", ticketSelected)
+
   li.innerHTML = `
       <img src=${event.image} alt=${event.title} height="300"/>
       <h3>${event.title}</h3>
@@ -49,66 +55,89 @@ export const generateEvent = (event, container, userID = null) => {
         )
         .join(" - ")}</h4>
       <h5><span class="tit" >Lugar:</span> ${event.location}</h5>
-      <h5 class="tit" >Precios</h5> <div class="prices">${event.ticketPrice
+      <h5 class="tit" >Precios</h5> <div class="prices">${!ticketSelected ? event.ticketPrice
         .map(
           (price) =>
             `<button class="prices-ticket">${price[0]}: <span class="tit">${price[1]}€</span></button>`
         )
-        .join(" ")}</div>
+        .join(" ") :
+        `<button>${ticketSelected[0]}: <span class="tit">${ticketSelected[1]}€</span></button>`
+      
+      }</div>
       <h5>${"⭐".repeat(Math.floor(Number(event.rate)))}</h5>
       <h5>${event.description}</h5>
-      
+  
       ${
-        !!(userID == null)
-          ? ""
-          : `
-      <button class=${
-        event.confirmed.includes(userID) ? "none-btn" : ""
-      } data-event-id="${event._id}">${
-              (event.confirmed.includes(userID) && "I`m in") || "I want to go!"
-            }</button>
-      `
+        !!event.confirmed.includes(userID)
+          ? `<button 
+      class="unregister-btn" data-event-id="${event._id}">I won't go</button>`
+          : ""
       }
-
-      ${
-        (event.confirmed.includes(userID) &&
-          `<button 
-        class="unregisterme-btn" data-event-id="${event._id}">I won't go</button>`) ||
-        (event.attendees.includes(userID) &&
-          `<button 
-          class="save-btn" data-event-id="${event._id}">Saved!</button>`) ||
-        `<button 
-          class="save-btn" data-event-id="${event._id}">Save this!</button>`
-      }
+  ${
+    !!event.attendees.includes(userID)
+      ? `<button 
+      class="unsave-btn" data-event-id="${event._id}">Saved!</button>`
+      : !!userID
+      ? `<button 
+      class="save-btn" data-event-id="${event._id}">Save this!</button>`
+      : ""
+  }
     `;
   container.appendChild(li);
 
-  const saveBtn = li.querySelector(".save-btn");
-  if (!!saveBtn) {
-    saveBtn.addEventListener("click", () => {
-      const eventId = saveBtn.getAttribute("data-event-id");
-      handleUpdateEvent(userID, eventId, "add", mail);
-      // getEvents(userID)
-    });
+  const saveBtn = container.querySelector(".save-btn");
+  const unSaveBtn = container.querySelector(".unsave-btn");
+
+  if (!!saveBtn || !!unSaveBtn) {
+    [saveBtn, unSaveBtn].forEach(
+      (btn, i) =>
+        btn &&
+        btn.addEventListener("click", () => {
+          const eventId = btn.getAttribute("data-event-id");
+          handleUpdateEvent(userID, eventId, ["save", "unsave"][i]);
+          Events();
+        })
+    );
   }
 
-  const ticketButton = li.querySelectorAll(".prices-ticket");
-  if (!!ticketButton) {
-    ticketButton.forEach((btn) =>
+  const ticketBtn = container.querySelectorAll(".prices-ticket");
+  if (!!ticketBtn) {
+    ticketBtn.forEach((btn) =>
       btn.addEventListener("click", (e) => {
-        const text = e.target.textContent;
+        const [selectedTitle, selectedPrice] = e.target.textContent.split(': ')
         const eventID = event._id;
-        console.log(text);
+        
+        if (
+          confirm(
+            `Do you want to purchase the ${selectedTitle} ticket of ${event.title}?`
+          )
+        ) fetch(
+            `http://localhost:3000/api/v1/events/update/${eventID}/confirm`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              method: "PUT",
+              body: JSON.stringify({
+                selectedPrice: selectedPrice.replaceAll(/[^0-9]/gi, ''),
+                selectedTitle
+              }),
+            }
+          )
+          .then(response => response.json())
+          .then(data => console.log(data))
+          .catch(error => console.error(error));
       })
     );
   }
 
-  const unregisterMe = li.querySelector(".unregisterme-btn");
-  if (!!unregisterMe) {
-    unregisterMe.addEventListener("click", () => {
-      const eventId = unregisterMe.getAttribute("data-event-id");
-      handleUpdateEvent(userID, eventId, "remove");
-      // getEvents(userID)
+  const unRegisterBtn = document.querySelector(".unregister-btn");
+  if (!!unRegisterBtn) {
+    unRegisterBtn.addEventListener("click", () => {
+      const eventId = unRegisterBtn.getAttribute("data-event-id");
+      if (confirm(`Do you want to cancel your purchase at ${event.title}?`))
+        handleUpdateEvent(userID, eventId, "remove");
     });
   }
 };

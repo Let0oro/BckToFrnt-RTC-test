@@ -45,7 +45,7 @@ export const loginSubmit = async (userName = null, password = null, email = null
       return 
     }
 
-    alert(`Welcome ${username}`);
+    alert(`Welcome ${userName}`);
 
     Events(dataRes.user);
   } catch (err) {

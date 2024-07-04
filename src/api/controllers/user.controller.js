@@ -8,8 +8,6 @@ require('dotenv').config({path: '../../../.env'})
 const generateAccessAndRefreshTokens = async (userID) => {
   try {
     const user = await User.findById(userID);
-
-    console.log(user)
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
 
@@ -72,7 +70,7 @@ const getUsers = async (req, res, next) => {
 const getUsersById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const user = await User.findById(id).populate({path: "events", model: Event, select: 'title image location date description confirmed -_id'}).lean();
+    const user = await User.findById(id).populate({path: "events._id", model: Event, select: 'title image location date description confirmed -_id'}).populate({path: "eventsSaved", model: Event, select: 'title image location date description confirmed -_id'}).lean();
     return res.status(200).json(user);
   } catch (err) {
     return res.status(400).json({message: "Error getting user by id", error: err.message});
@@ -113,8 +111,6 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   const { email, password, userName } = req.body;
-
-  console.log(userName, password)
 
   if (!userName || !email || !password) 
     return res.status(400).json({message: 'Email, name and password are required'});
@@ -257,7 +253,7 @@ const isLoggedIn = async (req, res) => {
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(userId);
     
-    const user = await User.findById(userId).select('userName email password');
+    const user = await User.findById(userId).select('userName email');
 
     if (!user) {
       return res.status(404).json({ message: 'Usuario no encontrado' });

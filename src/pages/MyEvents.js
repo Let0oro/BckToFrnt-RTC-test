@@ -17,11 +17,17 @@ const getMyEvents = async () => {
     `http://localhost:3000/api/v1/events/my_events`,
     { credentials: "include" }
   );
-  const {events: purchased, eventsSaved: saved, userID} = await eventsData.json();
-  const eventsPuchased = document.querySelector("#events-purchased");
+  const {
+    events: purchased,
+    eventsSaved: saved,
+    userID,
+  } = await eventsData.json();
+  const eventsPurchased = document.querySelector("#events-purchased");
   const eventsSaved = document.querySelector("#events-saved");
 
-  purchased.forEach((event) => generateEvent(event, eventsPuchased, userID));
+  purchased.forEach(({ _id: event, ticketPriceSelected }) =>
+    generateEvent(event, eventsPurchased, userID, ticketPriceSelected)
+  );
   saved.forEach((event) => generateEvent(event, eventsSaved, userID));
 };
 

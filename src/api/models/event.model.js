@@ -9,7 +9,7 @@ const eventSchema = new mongoose.Schema(
         { type: Number, required: true },
       ],
     ],
-    ticketPticeSelected: [
+    ticketPriceSelected: [
       { type: String, required: true },
       { type: Number, required: true },
     ],

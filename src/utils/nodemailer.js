@@ -36,6 +36,8 @@ async function nodeMail(address, name, eventName, price, id) {
       }
     }
   );
+
+  console.log(info)
 }
 
 module.exports = nodeMail;

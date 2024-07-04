@@ -2,13 +2,12 @@ const jwt = require("jsonwebtoken");
 const nodeMail = require("../../utils/nodemailer");
 const Event = require("../models/event.model");
 const User = require("../models/user.model");
-require('dotenv').config({path: '../../../.env'});
+require("dotenv").config({ path: "../../../.env" });
 
 const existsID = (arr, id) => !!arr.some((i) => String(i) == String(id));
 
 const getEvents = async (req, res, next) => {
   try {
-
     const events = await Event.find().lean();
     return res.status(200).json({ events });
   } catch (err) {
@@ -31,29 +30,60 @@ const getEventsById = async (req, res, next) => {
 };
 
 const getMyEvents = async (req, res, next) => {
-  const reqHeadCookies = req.headers?.cookie?.split(';').find(v => v.startsWith("accessToken="))?.split("accessToken=")[1];
+  const reqHeadCookies = req.headers?.cookie
+    ?.split(";")
+    .find((v) => v.startsWith("accessToken="))
+    ?.split("accessToken=")[1];
 
   const accesstoken = reqHeadCookies || req.cookies?.accessToken;
   if (!accesstoken) {
-    return res.status(401).json({ message: 'No se proporcionó token de autenticación' });
+    return res
+      .status(401)
+      .json({ message: "No se proporcionó token de autenticación" });
   }
 
   try {
-    const decodedUser = jwt.verify(accesstoken, process.env.ACCESS_TOKEN_SECRET);
+    const decodedUser = jwt.verify(
+      accesstoken,
+      process.env.ACCESS_TOKEN_SECRET
+    );
 
     const userID = decodedUser._id;
 
-    const userEvents = await User.findById(userID).populate('eventsSaved events');
-    
-    if (!userEvents) {
-      return res.status(404).json({message: "This user don't have events saved or bought"});
+    const { eventsSaved: userEventsSaved } = await User.findById(userID)
+      .populate({
+        path: "eventsSaved._id",
+        model: Event,
+        select: {
+          title: true,
+        },
+      })
+      .select("eventsSaved")
+      .lean();
+    const { events: userEventsPurchased } = await User.findById(userID)
+      .populate({
+        path: "events._id",
+        model: Event,
+        // select: "title",
+      })
+      .select("events")
+      .lean();
+
+    if (!userEventsPurchased || !userEventsSaved) {
+      return res
+        .status(404)
+        .json({ message: "This user don't have events saved or bought" });
     }
 
-    return res.status(200).json({userID,events: userEvents.events, eventsSaved: userEvents.eventsSaved});
+    return res.status(200).json({
+      userID,
+      events: userEventsPurchased,
+      eventsSaved: userEventsSaved,
+    });
   } catch (error) {
-    return res.status(400).json({message: error.message});
+    return res.status(400).json({ message: error.message });
   }
-  }
+};
 
 const postEvent = async (req, res, next) => {
   try {
@@ -79,9 +109,16 @@ const postEvent = async (req, res, next) => {
 };
 
 const updateEventById = async (req, res, next) => {
+  if (!req.params.id)
+    return res.status(400).json({
+      message: "Error getting the ID from params at updateEvent function",
+    });
+
+  const { id: eventId, status: action } = req.params;
+  const { _id: userId, email, userName } = req.user;
+  const { selectedTitle, selectedPrice } = req.body;
+
   try {
-    let { id: eventId, status: action } = req.params;
-    const { _id: userId, email, userName } = req.user;
     let objByAction;
 
     let userMod = await User.findById(userId).lean();
@@ -97,57 +134,78 @@ const updateEventById = async (req, res, next) => {
       });
     }
 
-    const { attendees, confirmed, title, ticketPrice } = eventMod;
-    const { eventsSaved } = userMod;
-    const existBothId = !!(existsID(attendees, userId) && existsID(events, eventId))
+    const { attendees, confirmed, ticketPrice, title, image, location } =
+      eventMod;
 
-    if (existBothId && action == "add") {
+    const { eventsSaved, events, email } = userMod;
+    const existBothId = !!(
+      existsID(attendees, userId) && existsID(eventsSaved, eventId)
+    );
+
+    if (existBothId && action == "save") {
       return res.status(400).json({ message: "User already is an attendee" });
     }
 
     if (!existBothId && !action == "remove") {
       return res.status(400).json({ message: "User isn't an attendee" });
     }
-    
+
     if (existsID(confirmed, userId) && action == "confirm") {
       return res.status(400).json({ message: "User already is confirmed" });
     }
 
-    objByAction = {
-      "add": [...attendees, userId],
-      "remove": attendees.filter(id => `${id}` !== `${userId}`)
+    if (!existsID(confirmed, userId) && action == "confirm") {
+      return res.status(400).json({ message: "User isn't an confirmed" });
     }
-
-    eventMod = await Event.findByIdAndUpdate(
-      eventId,
-      action == "confirm" ? { confirmed: [...confirmed, userId] } : { attendees: objByAction[action] },
-      { new: true }
-    );
 
     objByAction = {
-      "add": [...eventsSaved, eventId],
-      "remove": eventsSaved.filter(id => `${id}` !== `${eventId}`)
-    }
+      save: { attendees: [...attendees, userId] },
+      unsave: { attendees: attendees.filter((id) => `${id}` !== `${userId}`) },
+      remove: { confirmed: confirmed.filter((id) => `${id}` !== `${userId}`) },
+      confirm: { confirmed: [...confirmed, userId] },
+    };
 
-    if (action === "confirm") nodeMail(email, userName, title, ticketPrice, (eventId +'-'+ id.splice(id.length-4, 2, '.')));
+    await Event.findByIdAndUpdate(eventId, objByAction[action], { new: true });
 
-    if (action != "confirm") {
-      userMod = await User.findByIdAndUpdate(
-        userId,
-        { eventsSaved: objByAction[action] },
-        { new: true }
-      );
-    }
+    const newEventPurchased = new Event({
+      _id: eventId,
+      ticketPriceSelected: [selectedTitle, Number(selectedPrice)],
+    });
+
+    objByAction = {
+      save: { $addToSet: { eventsSaved: eventId } },
+      unsave: {
+        eventsSaved: eventsSaved.filter((id) => `${id}` !== `${eventId}`),
+      },
+      confirm: { $addToSet: { events: newEventPurchased } },
+      remove: {
+        events: events.filter(({ _id }) => `${_id}` !== `${eventId}}`),
+      },
+    };
+
+    // if (action === "confirm")
+    //   nodeMail(
+    //     email,
+    //     userName,
+    //     title,
+    //     ticketPrice,
+    //     ([selectedTitle, Number(selectedPrice)]),
+    //     eventId + "-" + userId.splice(userId.length - 4, 2, ".")
+    //   );
+
+    await User.findByIdAndUpdate(userId, objByAction[action], { new: true });
 
     return res.status(200).json({
-      message: `Event and User updated and ${action ? "added" : "removed"}`,
+      message: `Event and User updated and ${action}${
+        action.at(-1) == "e" ? "" : "e"
+      }d`,
       eventAttendees: attendees,
       userEvents: eventsSaved,
     });
   } catch (err) {
     return res
       .status(400)
-      .json({ message: "Error updating a event", error: err.message });
+      .json({ message: "Error updating an event", error: err.message });
   }
 };
 

@@ -10,7 +10,13 @@ const userSchema = new mongoose.Schema(
     refreshToken: { type: String },
 
     eventsSaved: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
-    events: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
+    events: [{
+      eventSelected: { type: mongoose.Schema.Types.ObjectId, ref: 'Event' },
+      ticketPriceSelected: [
+        { type: String, required: true },
+        { type: Number, required: true },
+      ],
+    }],
     rol: {
       type: String,
       required: true,

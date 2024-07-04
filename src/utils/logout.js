@@ -15,7 +15,6 @@ const logout = async () => {
     alert("See you soon!");
 
     const responseData = await response.json();
-    console.log("Response Logout", responseData);
     Login();
   } catch (err) {
     console.error({ message: "Logout failed", error: err.message });

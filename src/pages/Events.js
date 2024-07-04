@@ -1,4 +1,5 @@
 import { generateEvent } from "#utils/eventsUtils";
+import init from "#utils/initWithCookiesSession";
 
 const template = (userName = null) => `
   <section id="events">
@@ -13,7 +14,7 @@ const template = (userName = null) => `
   </section>
 `;
 
-const getEvents = async (userID = null, mail) => {
+const getEvents = async (userID = null) => {
   const eventsData = await fetch("http://localhost:3000/api/v1/events/");
 
   let events = await eventsData.json();
@@ -23,11 +24,14 @@ const getEvents = async (userID = null, mail) => {
   events.forEach(event => generateEvent(event, eventsContainer, userID))
 };
 
-const Events = (user = { userName: null, _id: null, email: null }) => {
-  const { userName, _id: userID, email: mail } = user;
-  document.querySelector("main").innerHTML = template(userName);
+const Events = async (user = { userName: null, _id: null}) => {
 
-  getEvents(userID, mail);
+  const cookiesValues = await init();
+  if (!user._id && !cookiesValues) return;
+    const { userName, _id: userID } = !!user._id ? user : cookiesValues;
+    document.querySelector("main").innerHTML = template(userName);
+    
+    await getEvents(userID);
 };
 
 export default Events;
