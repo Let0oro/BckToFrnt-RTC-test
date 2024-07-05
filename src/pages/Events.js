@@ -35,11 +35,15 @@ const Events = async (user = { userName: null, _id: null }) => {
     document.getElementById("loginlink").style.display = "none";
     document.getElementById("myeventslink").style.display = "inline-block";
     document.getElementById("registerlink").style.display = "none";
+    document.getElementById("neweventlink").style.display = "inline-block";
+    document.querySelector("#eventslink").style.display = "inline-block";
   } else {
     document.getElementById("logoutlink").style.display = "none";
     document.getElementById("loginlink").style.display = "inline-block";
     document.getElementById("myeventslink").style.display = "none";
     document.getElementById("registerlink").style.display = "inline-block";
+    document.getElementById("neweventlink").style.display = "none";
+    document.querySelector("#eventslink").style.display = "inline-block";
   }
   
   document.querySelector("main").innerHTML = template(user.userName);

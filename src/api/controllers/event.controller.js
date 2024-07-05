@@ -87,15 +87,13 @@ const getMyEvents = async (req, res, next) => {
 
 const postEvent = async (req, res, next) => {
   try {
-    const { title, editorial, author } = req.body;
+    const { title, image, location, date, ticketPrice, description } = req.body;
     const existedEvent = await Event.findOne({ title });
 
     if (
       existedEvent &&
-      existedEvent.editorial === editorial &&
-      existedEvent.author === author
-    ) {
-      return res.status(400).json({ message: "This events already exists" });
+      existedEvent?.image === image ) {
+      return res.status(400).json({ message: "This event already exists" });
     }
 
     const newEvent = new Event(req.body);

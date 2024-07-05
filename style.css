@@ -36,6 +36,10 @@ h1 {
   line-height: 1.1;
 }
 
+header > a {
+  display: none;
+}
+
 ul {
   list-style: none;
 }
@@ -136,24 +140,36 @@ button:focus-visible {
   }
 }
 
-.modal {
-  position: absolute;
-  display: none;
-  flex-direction: column;
-  justify-content: space-evenly;
-  align-items: center;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50% -50%);
-  width: 60%;
-  height: 50%;
-  background-color: #24242433;
-  backdrop-filter: blur(10px);
-  color: black;
-  padding: 10px;
-  z-index: 999999999;
-  box-sizing: revert;
-  border: 100lvh solid #00000080;
-  border-radius: 10px;
-  text-align: center;
+
+
+/* 
+.file-select {
+  position: relative;
+  display: inline-block;
 }
+
+.file-select::before {
+  background-color: #646cff;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 3px;
+  content: 'Seleccionar';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+}
+
+.file-select input[type="file"] {
+  opacity: 0;
+  width: 200px;
+  height: 32px;
+  display: inline-block;
+}
+
+#image::before {
+  content: 'Seleccionar Imagen';
+} */
