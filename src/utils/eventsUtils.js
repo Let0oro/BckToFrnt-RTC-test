@@ -100,7 +100,7 @@ export const generateEvent = (event, container, userID = null, ticketSelected = 
   }
 
   const ticketBtn = container.querySelectorAll(".prices-ticket");
-  if (!!ticketBtn) {
+  if (!!ticketBtn && !!userID) {
     ticketBtn.forEach((btn) =>
       btn.addEventListener("click", (e) => {
         const [selectedTitle, selectedPrice] = e.target.textContent.split(': ')

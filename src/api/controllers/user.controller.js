@@ -239,8 +239,8 @@ const logoutUser = async (req, res) => {
     // .cookie("email", null, { httpOnly: false, sameSite: "lax" })
     // .cookie("name", null, { httpOnly: false, sameSite: "lax" })
     // .cookie("pass", null, { httpOnly: false, sameSite: "lax" })
-    .cookie("accessToken", { httpOnly: true, secure: true })
-    .cookie("refreshToken", { httpOnly: true, secure: true })
+    .cookie("accessToken", null, { maxAge: 0})
+    .cookie("refreshToken", null, { maxAge: 0})
     .json({message: `User ${userName} has logged out`, user: {}});
 
   } catch (err) {
