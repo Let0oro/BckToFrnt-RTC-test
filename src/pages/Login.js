@@ -41,8 +41,8 @@ export const loginSubmit = async (userName = null, password = null, email = null
 
     const dataRes = await data.json();
     if (data.status >= 300) {
-      alert("Invalid conection with server");
-      return 
+      alert(dataRes.message);
+      return;
     }
 
     alert(`Welcome ${userName}`);

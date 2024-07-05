@@ -80,7 +80,7 @@ const getUsersById = async (req, res, next) => {
 const register = async (req, res) => {
   const { userName, email, password } = req.body;
 
-  if (!email || !password || !userName) return res.status(400).json({message: 'Name, Email and Password are required'});
+  if (!email || !password || !userName) return res.status(400).json({message: 'Email, name and password are required'});
 
   try {
 

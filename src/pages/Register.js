@@ -4,7 +4,7 @@ const template = () => `
   <section id="register">
     <form>
       <input type="text" placeholder="Username" id="username"/>
-      <input type="email" placeholder="Ethereal Email" id="email"/>
+      <input type="email" placeholder="Email" id="email"/>
       <input type="password" id="password" placeholder="Password" />
       <button id="registerbtn">Register</button>
     </form>
@@ -29,11 +29,15 @@ const registerSubmit = async () => {
         password: password,
       }),
     });
+    const dataRes = await response.json();
+
+    if (response.status >= 300) {
+      alert(dataRes.message);
+      return;
+    }
 
     if (response.ok) {
-      const json = await response.json();
-      const {userName, _id, email} = json.user;
-      // loginSubmit(username, password, email)
+      const {userName, _id, email} = dataRes.user;
       Events({userName, _id, email});
     } else {
       const errorMessage = await response.json();
