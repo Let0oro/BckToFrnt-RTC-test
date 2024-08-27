@@ -1,4 +1,5 @@
 import { generateEvent } from "#utils/eventsUtils";
+import { FrontFetch } from "#utils/Front.fetch";
 import init from "#utils/initWithCookiesSession";
 
 const template = (userName = null) => `
@@ -15,10 +16,14 @@ const template = (userName = null) => `
 `;
 
 const getEvents = async (userID = null) => {
-  const eventsData = await fetch("http://localhost:3000/api/v1/events/");
+  const { events } = await FrontFetch.caller({
+    name: "events",
+    method: "get",
+    action: "get",
+  });
 
-  let events = await eventsData.json();
-  events = events.events;
+  console.log({ events });
+
   const eventsContainer = document.querySelector("#eventscontainer");
 
   events.forEach((event) =>
@@ -26,26 +31,41 @@ const getEvents = async (userID = null) => {
   );
 };
 
-const Events = async (user = { userName: null, _id: null }) => {
+const elemsIdStyleTo = (obj) => {
+  const keys = Object.keys(obj);
+  keys.forEach((k, i) => {
+    obj[k].forEach((id) => (document.getElementById(id).style.display = k));
+  });
+};
+
+const Events = async (user = { userName: null, _id: null, rol: null }) => {
   const cookiesValues = await init();
 
+  let objIds;
   if (user._id || cookiesValues) {
-    user = (!!user._id ? user : cookiesValues);
-    document.getElementById("logoutlink").style.display = "inline-block";
-    document.getElementById("loginlink").style.display = "none";
-    document.getElementById("myeventslink").style.display = "inline-block";
-    document.getElementById("registerlink").style.display = "none";
-    document.getElementById("neweventlink").style.display = "inline-block";
-    document.querySelector("#eventslink").style.display = "inline-block";
+    user = !!user._id ? user : cookiesValues;
+
+    objIds = {
+      "inline-block": [
+        "logoutlink",
+        "myeventslink",
+        "neweventlink",
+        "eventslink",
+      ],
+      none: ["loginlink", "registerlink"],
+    };
+
+    elemsIdStyleTo(objIds);
+
+    // FrontFetch.caller({})
   } else {
-    document.getElementById("logoutlink").style.display = "none";
-    document.getElementById("loginlink").style.display = "inline-block";
-    document.getElementById("myeventslink").style.display = "none";
-    document.getElementById("registerlink").style.display = "inline-block";
-    document.getElementById("neweventlink").style.display = "none";
-    document.querySelector("#eventslink").style.display = "inline-block";
+    objIds = {
+      "inline-block": ["loginlink", "registerlink", "eventslink"],
+      none: ["logoutlink", "myeventslink", "neweventlink"],
+    }
+    elemsIdStyleTo(objIds);
   }
-  
+
   document.querySelector("main").innerHTML = template(user.userName);
   await getEvents(user.userID);
 };

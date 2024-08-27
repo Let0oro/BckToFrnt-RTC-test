@@ -3,12 +3,15 @@ const eventRouter = require('./api/routes/event.routes.js')
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 require('dotenv').config({path: '../.env'});
+const connectDB = require('./config/db.js');
+const { configCloudinary } = require('./middlewares/files.middleware.js');
+
 
 const express = require('express');
 const PORT = 3000;
 
-const connectDB = require('./config/db.js');
 connectDB();
+configCloudinary();
 
 const server = express();
 

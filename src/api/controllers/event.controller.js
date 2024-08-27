@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const nodeMail = require("../../utils/nodemailer");
 const Event = require("../models/event.model");
 const User = require("../models/user.model");
+const { deleteImgCloudinary } = require("../../middlewares/files.middleware");
 require("dotenv").config({ path: "../../../.env" });
 
 const existsID = (arr, id) => !!arr.some((i) => String(i) == String(id));
@@ -87,16 +88,17 @@ const getMyEvents = async (req, res, next) => {
 
 const postEvent = async (req, res, next) => {
   try {
-    const { title, image, location, date, ticketPrice, description } = req.body;
+    const { title, image } = req.body;
     const existedEvent = await Event.findOne({ title });
 
-    if (
-      existedEvent &&
-      existedEvent?.image === image ) {
+    if (existedEvent && existedEvent?.image === image) {
       return res.status(400).json({ message: "This event already exists" });
     }
 
-    const newEvent = new Event(req.body);
+    const newEvent = new Event({
+      ...req.body,
+      image: req.file ? req.file.path : "no image",
+    });
     const event = await newEvent.save();
     return res.status(201).json({ message: "new event posted:", event });
   } catch (err) {
@@ -107,7 +109,6 @@ const postEvent = async (req, res, next) => {
 };
 
 const updateEventById = async (req, res, next) => {
-
   const { id: eventId, status: action } = req.params;
   const { _id: userId, email, userName } = req.user;
   const { selectedTitle, selectedPrice } = req.body;
@@ -128,7 +129,7 @@ const updateEventById = async (req, res, next) => {
       });
     }
 
-    const { attendees, confirmed, ticketPrice, title, image, location } =
+    const { attendees, confirmed } =
       eventMod;
 
     const { eventsSaved, events, email } = userMod;
@@ -152,7 +153,7 @@ const updateEventById = async (req, res, next) => {
       return res.status(400).json({ message: "User isn't an confirmed" });
     }
 
-    console.log('confirmed', confirmed);
+    console.log("confirmed", confirmed);
 
     objByAction = {
       save: { $addToSet: { attendees: [...attendees, userId] } },
@@ -209,6 +210,7 @@ const deleteEvent = async (req, res, next) => {
   try {
     const { id } = req.params;
     const event = await Event.findByIdAndDelete(id);
+    if (event.image) deleteImgCloudinary(event.image);
     return res.status(200).json({
       message: "Event deleted succesfully",
       eventDeleted: event,
@@ -216,7 +218,7 @@ const deleteEvent = async (req, res, next) => {
   } catch (err) {
     return res
       .status(400)
-      .json({ message: "Error deleting a event", error: err.message });
+      .json({ message: "Error deleting a event " + String(err.message) });
   }
 };
 

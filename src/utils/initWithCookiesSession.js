@@ -13,7 +13,7 @@ async function checkLoggedInStatus() {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("Error checking login status: %s", error.message);
+    console.error("Error checking login status: %s", String(error.message));
     return null;
   }
 }
