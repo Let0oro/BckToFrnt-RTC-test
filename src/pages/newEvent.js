@@ -3,7 +3,7 @@ import { FrontFetch } from "#utils/Front.fetch";
 const template = () => {
   return `
       <section>
-        <form onkeydown="if(event.keyCode === 13) {alert('You have pressed Enter key, use submit button instead');return false;}" >
+        <form onkeydown="if(event.keyCode === 13) {return false;}" >
 
           <fieldset>
             <legend>Title</legend>
@@ -18,16 +18,16 @@ const template = () => {
             </div>
           </fieldset>
 
-          <img src="" alt="Loading" id="imageCharged" />
-
           <fieldset id="pricesField">
             <legend>Prices</legend>
             <label for="priceNum">Precio</label>
             <input type="number" require step="10" min="0" max="10000" value="0" name="priceNum" id="priceNum" />
             <label for="priceTxt">Escribir tipo de entrada tras escoger precio</label>
-            <input type="text" require name="priceTxt" id="priceTxt" autocomplete="false" placeholder="Press SPACE to add" />
+            <input type="text" require name="priceTxt" id="priceTxt" autocomplete="false" placeholder="ticket title" />
+            <button id="addPrice" >Add</button>
             <ul id="priceList"></ul>
           </fieldset>
+          
 
           <fieldset>
             <legend>Location</legend>
@@ -69,29 +69,50 @@ const newEvent = () => {
   const inputNumPrice = document.getElementById("priceNum");
   if (listPrices) setButtonList(listPrices, inputTitle, inputNumPrice);
 
+  const startDate = document.getElementById("startDate");
+  const endDate = document.getElementById("endDate");
+  const now = new Date().toISOString();
+  startDate.value = now;
+  startDate.min = now
+  endDate.min = now
+
+  function resetMinEndDate () {
+    console.log(this)
+    endDate.min = this.value;
+  }
+
+  startDate.addEventListener("change", resetMinEndDate)
+
+
+  // document.getElementById("endDate").min
+
   const submitBtn = document.getElementById("createSubmit");
   if (submitBtn) submitBtn.addEventListener("click", (e) => createSubmit(e));
 };
 
 const setButtonList = (list, textInput, numInput) => {
-  [textInput, numInput].forEach((el) => {
-    el.addEventListener("keyup", (e) => {
-      e.preventDefault();
-        
-      if (e.key == " " || e.key == "Enter") {
-        list.innerHTML += `
-            <li>${textInput.value.slice(0, -1)}: ${Number(
-              numInput.value
-            )}€ <button class="removeLi">✖</button></li>
-        `;
-        textInput.value = "";
-        numInput.value = 0;
-        document.querySelector(".removeLi").addEventListener("click", (e) => {
-          list.remove(e.target.parentElement);
-        });
+  document.getElementById("addPrice").addEventListener("click", (e) => {
+    e.preventDefault();
+
+    console.log()
+    const txtValue = textInput.value;
+    const numValue = numInput.value;
+    console.log({numValue})
+      if (txtValue.trim().length && Number(numValue)) {
+          list.innerHTML += `
+          <li>${txtValue.trim()}: ${Number(
+            numValue
+          )}€ <button class="removeLi">✖</button></li>
+          `;
+          textInput.value = "";
+          numInput.value = 0;
+          document.querySelector(".removeLi").addEventListener("click", (e) => {
+            list.remove(e.target.parentElement);
+          });
+      } else {
+        alert("Your ticket must have some price and text")
       }
-    });
-  });
+  })
 };
 
 const createSubmit = async (e) => {
@@ -103,26 +124,32 @@ const createSubmit = async (e) => {
   );
 
   const bodyPost = {
-    title: await selIDvalue("title"),
+    title: selIDvalue("title"),
     image: selIDfile("image"),
-    location: await selIDvalue("location"),
+    location: selIDvalue("location"),
     date,
-    description: await selIDvalue("description"),
+    description: selIDvalue("description"),
     ticketPrice: prices,
   };
 
-  if (!Object.values(bodyPost).some((v) => !v)) {
-    const data = await FrontFetch.caller(
+  if (!Object.values(bodyPost).some((v) => typeof v != "object" ? !v : (!v.length || v.some(n => !n)))) {
+    const dataRes = await FrontFetch.caller(
       { name: "events", method: "post" },
       { ...bodyPost }
     );
 
+    console.log({dataRes});
+
+
+
   } else {
+
+    console.log()
     alert(
-      `Tienes que rellenar todos los campos, campos faltantes: [${Object.values(
+      `Tienes que rellenar todos los campos, campos faltantes: [${Object.keys(
         bodyPost
       )
-        .filter((v) => !v)
+        .filter((k) => typeof bodyPost[k] != "object" ? !bodyPost[k] : (!bodyPost[k].length || bodyPost[k].some(n => !n)))
         .join(", ")}]`
     );
   }
