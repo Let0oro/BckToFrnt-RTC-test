@@ -1,7 +1,9 @@
+import { FrontFetch } from "#utils/Front.fetch";
+
 const template = () => {
   return `
       <section>
-        <form>
+        <form onkeydown="if(event.keyCode === 13) {alert('You have pressed Enter key, use submit button instead');return false;}" >
 
           <fieldset>
             <legend>Title</legend>
@@ -11,17 +13,19 @@ const template = () => {
           <fieldset>
             <legend>Image</legend>
             <div class="file-select" id="imageDiv" >
-                  <input type="url" require name="image" id="image" placeholder="[URL] Portada de Evento" />
-                <!-- <input type="file" require accept="image/png, image/jpeg, image/webg, image/png" name="image" aria-label="Archivo"> -->
+                <!-- <input type="url" require name="image" id="image" placeholder="[URL] Portada de Evento" /> -->
+                <input type="file" multiple="false" id="image" require accept="image/png, image/jpeg, image/webg, image/png" name="image" aria-label="Archivo">
             </div>
           </fieldset>
+
+          <img src="" alt="Loading" id="imageCharged" />
 
           <fieldset id="pricesField">
             <legend>Prices</legend>
             <label for="priceNum">Precio</label>
             <input type="number" require step="10" min="0" max="10000" value="0" name="priceNum" id="priceNum" />
             <label for="priceTxt">Escribir tipo de entrada tras escoger precio</label>
-            <input type="text" require name="priceTxt" id="priceTxt" autocomplete="false" placeholder="Press SPACE to add"/>
+            <input type="text" require name="priceTxt" id="priceTxt" autocomplete="false" placeholder="Press SPACE to add" />
             <ul id="priceList"></ul>
           </fieldset>
 
@@ -43,7 +47,7 @@ const template = () => {
             <textarea spellcheck="true" name="description" id="description" cols="30" rows="10" placeholder="Description of the event..."></textarea>
           </fieldset>
 
-          <button id="createSubmit">Create Event</button>
+          <button type="submit" id="createSubmit">Create Event</button>
         </form>
       </section>
     
@@ -51,6 +55,11 @@ const template = () => {
 };
 
 const selIDvalue = (id) => document.getElementById(`${id}`)?.value;
+
+const selIDfile = (id) => {
+  const elem = document.getElementById(`${id}`);
+  return elem?.files ? elem?.files[0] : undefined
+};
 
 const newEvent = () => {
   document.querySelector("main").innerHTML = template();
@@ -65,15 +74,15 @@ const newEvent = () => {
 };
 
 const setButtonList = (list, textInput, numInput) => {
-  [textInput, numInput].forEach((el) =>
+  [textInput, numInput].forEach((el) => {
     el.addEventListener("keyup", (e) => {
       e.preventDefault();
-
-      if (e.key == " ") {
+        
+      if (e.key == " " || e.key == "Enter") {
         list.innerHTML += `
             <li>${textInput.value.slice(0, -1)}: ${Number(
-          numInput.value
-        )}€ <button class="removeLi">✖</button></li>
+              numInput.value
+            )}€ <button class="removeLi">✖</button></li>
         `;
         textInput.value = "";
         numInput.value = 0;
@@ -81,8 +90,8 @@ const setButtonList = (list, textInput, numInput) => {
           list.remove(e.target.parentElement);
         });
       }
-    })
-  );
+    });
+  });
 };
 
 const createSubmit = async (e) => {
@@ -95,27 +104,27 @@ const createSubmit = async (e) => {
 
   const bodyPost = {
     title: await selIDvalue("title"),
-    image: await selIDvalue("image"),
+    image: selIDfile("image"),
     location: await selIDvalue("location"),
     date,
     description: await selIDvalue("description"),
-    prices,
+    ticketPrice: prices,
   };
 
-  if (!!!Object.values(bodyPost).some((v) => v == undefined)) {
-    const response = await fetch("http://localhost:3000/api/v1/events", {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-      credentials: "include",
-      body: JSON.stringify({...bodyPost, ticketPrice: prices}),
-    });
+  if (!Object.values(bodyPost).some((v) => !v)) {
+    const data = await FrontFetch.caller(
+      { name: "events", method: "post" },
+      { ...bodyPost }
+    );
 
-    const data = await response.json();
-    console.log(data);
   } else {
-    alert(`Tienes que rellenar todos los campos, campos faltantes: [${Object.values(bodyPost).filter((v) => v == undefined).join(', ')}]`)
+    alert(
+      `Tienes que rellenar todos los campos, campos faltantes: [${Object.values(
+        bodyPost
+      )
+        .filter((v) => !v)
+        .join(", ")}]`
+    );
   }
 };
 

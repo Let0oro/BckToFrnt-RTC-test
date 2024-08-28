@@ -22,17 +22,15 @@ export class FrontFetch {
     },
   };
 
-  static async toFormData(form, files = []) {
+  static async toFormData(form, files = {}) {
     const formData = new FormData();
 
     for (const key in form) {
-      formData.append(key, form[key]);
+      formData.append(key, (typeof form[key] == "object" ? JSON.stringify(form[key]) : form[key]));
     }
 
-    files.forEach((file) => {
-      formData.append("files", file);
-    });
-
+    formData.append("image", files);
+    
     return form ? formData : null;
   }
 
@@ -63,7 +61,11 @@ export class FrontFetch {
       headers,
     };
 
-    formData = await toFormData(formData);
+    let image;
+    if (formData) image = formData?.image;
+    if (image) delete formData.image;
+    formData = await (image ? toFormData(formData, image) : toFormData(formData));
+
     if (formData) opts.body = formData;
     if (name != "user" || method != "get") opts.credentials = "include";
 

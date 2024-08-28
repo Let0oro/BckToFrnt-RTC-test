@@ -3,8 +3,6 @@ const User = require("../api/models/user.model");
 
 const getMyAuthSessionUser = async (req, res) => {
 
-  console.log("getMyAuthSessionUser")
-
   const token =
     req.cookies?.accessToken ||
     req.header("Authorization")?.replace("Bearer ", "");
@@ -30,11 +28,8 @@ const getMyAuthSessionUser = async (req, res) => {
 };
 
 const isAdmin = async (req, res, next) => {
-  console.log("isAdmin")
   try {
     const user = await getMyAuthSessionUser(req, res);
-
-    console.log({user});
 
     if (!user) return res.status(404).json({message: "The user hasnt been founded"})
 
@@ -50,7 +45,6 @@ const isAdmin = async (req, res, next) => {
 };
 
 const verifyJWT = async (req, res, next) => {
-  console.log("isAdmin")
 
   try {
     const user = await getMyAuthSessionUser(req, res)

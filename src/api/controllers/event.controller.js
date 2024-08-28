@@ -88,23 +88,25 @@ const getMyEvents = async (req, res, next) => {
 
 const postEvent = async (req, res, next) => {
   try {
-    const { title, image } = req.body;
+    const { title, date, ticketPrice } = req.body;
     const existedEvent = await Event.findOne({ title });
 
-    if (existedEvent && existedEvent?.image === image) {
+    if (existedEvent && existedEvent?.image === req?.file?.path) {
       return res.status(400).json({ message: "This event already exists" });
     }
 
     const newEvent = new Event({
       ...req.body,
-      image: req.file ? req.file.path : "no image",
+      image: req.file ? req.file?.path : "no image",
+      date: JSON.parse(date),
+      ticketPrice: JSON.parse(ticketPrice),
     });
     const event = await newEvent.save();
     return res.status(201).json({ message: "new event posted:", event });
   } catch (err) {
     return res
       .status(400)
-      .json({ message: "Error creating new event", error: err.message });
+      .json({ message: "Error creating new event " + err.message });
   }
 };
 
