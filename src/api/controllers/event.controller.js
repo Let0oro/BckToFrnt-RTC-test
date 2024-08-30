@@ -91,7 +91,7 @@ const postEvent = async (req, res, next) => {
     const { title, date, ticketPrice } = req.body;
     const existedEvent = await Event.findOne({ title });
 
-    if (existedEvent && existedEvent?.image === req?.file?.path) {
+    if (existedEvent && existedEvent?.image === req?.file?.path || title == existedEvent?.title) {
       return res.status(400).json({ message: "This event already exists" });
     }
 
@@ -211,8 +211,11 @@ const updateEventById = async (req, res, next) => {
 const deleteEvent = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const event = await Event.findByIdAndDelete(id);
-    if (event.image) deleteImgCloudinary(event.image);
+    console.log(id)
+    const event = await Event.findById(id);
+    if (!event) return res.status(404).json({message: "this event does't exist"})
+    if (event.image != "no image") deleteImgCloudinary(event.image);
+    await Event.findOneAndDelete(event)
     return res.status(200).json({
       message: "Event deleted succesfully",
       eventDeleted: event,

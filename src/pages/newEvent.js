@@ -58,7 +58,7 @@ const selIDvalue = (id) => document.getElementById(`${id}`)?.value;
 
 const selIDfile = (id) => {
   const elem = document.getElementById(`${id}`);
-  return elem?.files ? elem?.files[0] : undefined
+  return elem?.files ? elem?.files[0] : undefined;
 };
 
 const newEvent = () => {
@@ -71,21 +71,18 @@ const newEvent = () => {
 
   const startDate = document.getElementById("startDate");
   const endDate = document.getElementById("endDate");
-  const now = new Date().toISOString();
+  const now = new Date().toISOString().split(":").slice(0, -1).join(":");
+  console.log({now})
   startDate.value = now;
-  startDate.min = now
-  endDate.min = now
+  startDate.min = now;
+  endDate.min = now;
 
-  function resetMinEndDate () {
-    console.log(this)
+  function resetMinEndDate() {
+    console.log(this);
     endDate.min = this.value;
   }
 
-  startDate.addEventListener("change", resetMinEndDate)
-
-
-  // document.getElementById("endDate").min
-
+  startDate.addEventListener("change", resetMinEndDate);
   const submitBtn = document.getElementById("createSubmit");
   if (submitBtn) submitBtn.addEventListener("click", (e) => createSubmit(e));
 };
@@ -94,25 +91,23 @@ const setButtonList = (list, textInput, numInput) => {
   document.getElementById("addPrice").addEventListener("click", (e) => {
     e.preventDefault();
 
-    console.log()
     const txtValue = textInput.value;
     const numValue = numInput.value;
-    console.log({numValue})
-      if (txtValue.trim().length && Number(numValue)) {
-          list.innerHTML += `
+    if (txtValue.trim().length && Number(numValue)) {
+      list.innerHTML += `
           <li>${txtValue.trim()}: ${Number(
             numValue
           )}€ <button class="removeLi">✖</button></li>
           `;
-          textInput.value = "";
-          numInput.value = 0;
-          document.querySelector(".removeLi").addEventListener("click", (e) => {
-            list.remove(e.target.parentElement);
-          });
-      } else {
-        alert("Your ticket must have some price and text")
-      }
-  })
+      textInput.value = "";
+      numInput.value = 0;
+      document.querySelector(".removeLi").addEventListener("click", (e) => {
+        list.remove(e.target.parentElement);
+      });
+    } else {
+      alert("Your ticket must have some price and text");
+    }
+  });
 };
 
 const createSubmit = async (e) => {
@@ -132,24 +127,43 @@ const createSubmit = async (e) => {
     ticketPrice: prices,
   };
 
-  if (!Object.values(bodyPost).some((v) => typeof v != "object" ? !v : (!v.length || v.some(n => !n)))) {
+  console.log(
+    Object.values(bodyPost).map((v, i) => Object.keys(bodyPost)[i])
+  );
+  console.log(
+    Object.values(bodyPost).map((v, i) =>
+      !Array.isArray(v)
+        ? !v
+        : (!v.length || v.some((n) => !n)) && Object.keys(bodyPost)[i]
+    )
+  );
+
+  if (
+    !Object.values(bodyPost).some((v) =>
+      typeof !Array.isArray(v) ? !v : !v.length || v.some((n) => !n)
+    )
+  ) {
     const dataRes = await FrontFetch.caller(
       { name: "events", method: "post" },
       { ...bodyPost }
     );
 
-    console.log({dataRes});
+    if (dataRes) {
+      document.querySelector("form input").files = null;
+      document.querySelector("form input").value = "";
+    }
 
-
-
+    console.log({ dataRes });
   } else {
-
-    console.log()
     alert(
       `Tienes que rellenar todos los campos, campos faltantes: [${Object.keys(
         bodyPost
       )
-        .filter((k) => typeof bodyPost[k] != "object" ? !bodyPost[k] : (!bodyPost[k].length || bodyPost[k].some(n => !n)))
+        .filter((k) =>
+          typeof bodyPost[k] != "object"
+            ? !bodyPost[k]
+            : !bodyPost[k].length || bodyPost[k].some((n) => !n)
+        )
         .join(", ")}]`
     );
   }
