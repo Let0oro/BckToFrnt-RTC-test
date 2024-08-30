@@ -2,6 +2,20 @@ import Events from "#pages/Events";
 import MyEvents from "#pages/MyEvents";
 import { FrontFetch } from "./Front.fetch";
 
+const reloadPage = async (isFromGeneral) => {
+  setTimeout(() => {
+    if (isFromGeneral) {
+      console.log({isFromGeneral, to: "Events"})
+      Events()
+    } else {
+      console.log({isFromGeneral, to: "MyEvents"})
+      MyEvents()
+    }
+    // (isFromGeneral ? () => Events() : () => MyEvents())();
+
+  }, 100)
+}
+
 const handleUpdateEvent = async (userID, eventId, status, mail = null) => {
   try {
     const data = await FrontFetch.caller(
@@ -58,8 +72,6 @@ export const generateEvent = async (
     null,
     { credentials: "include" }
   );
-
-  // console.log({ userEvents: user.events, userSaves: user.eventsSaved });
 
   li.innerHTML = `
       <img src=${event.image} alt=${event.title} height="300"/>
@@ -119,27 +131,19 @@ export const generateEvent = async (
           const eventId = btn.getAttribute("data-event-id");
           const status = ["save", "unsave"][i];
 
-          handleUpdateEvent(userID, eventId, ["save", "unsave"][i]).then(() => {
-            isFromGeneral ? Events() : MyEvents();
-          });
+          handleUpdateEvent(userID, eventId, status).then(() => {
+            reloadPage(isFromGeneral)
+          })
         })
     );
   }
 
   const ticketBtn = li.querySelectorAll(".prices-ticket");
   if (ticketBtn && userID) {
-    // const ticketBtnLength = ticketBtn.length;
-    // for (let i = 0; i < ticketBtnLength; i++) {
-    //   ticketBtn[i].addEventListener("click", (e) =>
-    //     handleTicketPurchase(e, event).then(() => {
-    //       isFromGeneral ? Events() : MyEvents();
-    //     })
-    //   );
-    // }
     ticketBtn.forEach((btn) =>
       btn.addEventListener("click", (e) =>
         handleTicketPurchase(e, event).then(() => {
-          isFromGeneral ? Events() : MyEvents();
+          reloadPage(isFromGeneral)
         })
       )
     );
@@ -150,8 +154,9 @@ export const generateEvent = async (
     unRegisterBtn.addEventListener("click", () => {
       const eventId = unRegisterBtn.getAttribute("data-event-id");
       if (confirm(`Do you want to cancel your purchase at ${event.title}?`))
-        handleUpdateEvent(userID, eventId, "remove");
-      isFromGeneral ? Events() : MyEvents();
+        handleUpdateEvent(userID, eventId, "remove").then(() => {
+          reloadPage(isFromGeneral)
+        });
     });
   }
 };

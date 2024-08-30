@@ -1,4 +1,5 @@
 import { generateEvent } from "#utils/eventsUtils";
+import { FrontFetch } from "#utils/Front.fetch";
 
 const template = () => `
 <section id="myevents">
@@ -13,24 +14,29 @@ const template = () => `
 `;
 
 const getMyEvents = async () => {
-  const eventsData = await fetch(
-    `http://localhost:3000/api/v1/events/my_events`,
+  const eventsData = await FrontFetch.caller(
+    { name: "events", method: "get", action: "myEvents" },
+    null,
     { credentials: "include" }
   );
-  const {
-    events: purchased,
-    eventsSaved: saved,
-    userID,
-  } = await eventsData.json();
+
+  const { events: purchased, eventsSaved: saved, userID } = await eventsData;
   const eventsPurchased = document.querySelector("#events-purchased");
   const eventsSaved = document.querySelector("#events-saved");
 
-  console.log(saved)
-
-  purchased.forEach(({ _id: event, ticketPriceSelected }) =>
-    generateEvent(event, eventsPurchased, userID, ticketPriceSelected, false)
+  purchased.forEach(
+    async ({ _id: event, ticketPriceSelected }) =>
+      await generateEvent(
+        event,
+        eventsPurchased,
+        userID,
+        ticketPriceSelected,
+        false
+      )
   );
-  saved.forEach((event) => generateEvent(event, eventsSaved, userID, null, false));
+  await saved.forEach(async (event) =>
+    generateEvent(event, eventsSaved, userID, null, false)
+  );
 };
 
 const MyEvents = () => {
