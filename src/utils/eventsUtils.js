@@ -1,44 +1,61 @@
 import Events from "#pages/Events";
 import MyEvents from "#pages/MyEvents";
+import { FrontFetch } from "./Front.fetch";
 
 const handleUpdateEvent = async (userID, eventId, status, mail = null) => {
   try {
-    const response = await fetch(
-      `http://localhost:3000/api/v1/events/update/${eventId}/${status}`,
+    const data = await FrontFetch.caller(
+      { name: "events", method: "put", id: eventId, status },
+      JSON.stringify({ attendees: [userID] }),
       {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
         credentials: "include",
-        body: JSON.stringify({
-          attendees: [userID],
-        }),
       }
     );
+    // const response = await fetch(
+    //   `http://localhost:3000/api/v1/events/update/${eventId}/${status}`,
+    //   {
+    //     method: "PUT",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     credentials: "include",
+    //     body: JSON.stringify({
+    //       attendees: [userID],
+    //     }),
+    //   }
+    // );
 
-    if (response.ok) {
-      const responseOk = await response.json();
-      console.log(responseOk.message);
-      if (status == "save" || status == "remove")
-        alert(
-          {
-            save: "Evento guardado en tus eventos",
-            remove: "Se ha cancelado la compra de este evento",
-          }[status]
-        );
-    } else {
-      console.error(response);
-      const responseError = await response.json();
-      console.error(responseError);
-    }
+    // if (response.ok) {
+    //   const responseOk = await response.json();
+    //   console.log(responseOk.message);
+    if (status == "save" || status == "remove")
+      alert(
+        {
+          save: "Evento guardado en tus eventos",
+          remove: "Se ha cancelado la compra de este evento",
+        }[status]
+      );
+    // } else {
+    //   console.error(response);
+    //   const responseError = await response.json();
+    //   console.error(responseError);
+    // }
   } catch (error) {
     console.error("Unexpected error", error);
   }
 };
 
-export const generateEvent = (event, container, userID = null, ticketSelected = null, isFromGeneral) => {
+export const generateEvent = (
+  event,
+  container,
+  userID = null,
+  ticketSelected = null,
+  isFromGeneral
+) => {
   const li = document.createElement("li");
+
+  console.log({ event });
+  console.log(event.attendees.includes(userID));
 
   li.innerHTML = `
       <img src=${event.image} alt=${event.title} height="300"/>
@@ -54,32 +71,33 @@ export const generateEvent = (event, container, userID = null, ticketSelected = 
         )
         .join(" - ")}</h4>
       <h4><span class="tit" >Lugar:</span> ${event.location}</h4>
-      <h4 class="tit" >Precios</h4> <div class="prices">${!ticketSelected ? event.ticketPrice
-        .map(
-          (price) =>
-            `<button class="prices-ticket">${price[0]}: <span class="tit">${price[1]}€</span></button>`
-        )
-        .join(" ") :
-        `<button>${ticketSelected[0]}: <span class="tit">${ticketSelected[1]}€</span></button>`
-      
+      <h4 class="tit" >Precios</h4> <div class="prices">${
+        !ticketSelected
+          ? event.ticketPrice
+              .map(
+                (price) =>
+                  `<button class="prices-ticket">${price[0]}: <span class="tit">${price[1]}€</span></button>`
+              )
+              .join(" ")
+          : `<button>${ticketSelected[0]}: <span class="tit">${ticketSelected[1]}€</span></button>`
       }</div>
       <h5>${"⭐".repeat(Math.floor(Number(event.rate)))}</h5>
       <h5>${event.description}</h5>
   
       ${
-        !!event.confirmed.includes(userID)
+        event.confirmed.includes(userID)
           ? `<button 
       class="unregister-btn" data-event-id="${event._id}">I won't go</button>`
           : ""
       }
   ${
-    !!event.attendees.includes(userID)
+    event.attendees.includes(userID)
       ? `<button 
       class="unsave-btn" data-event-id="${event._id}">Unsave!</button>`
-      : !!userID
-      ? `<button 
+      : userID
+        ? `<button 
       class="save-btn" data-event-id="${event._id}">Save this!</button>`
-      : ""
+        : ""
   }
     `;
   container.appendChild(li);
@@ -87,11 +105,12 @@ export const generateEvent = (event, container, userID = null, ticketSelected = 
   const saveBtn = container.querySelector(".save-btn");
   const unSaveBtn = container.querySelector(".unsave-btn");
 
-  if (!!saveBtn || !!unSaveBtn) {
+  if (saveBtn || unSaveBtn) {
     [saveBtn, unSaveBtn].forEach(
       (btn, i) =>
         btn &&
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
           const eventId = btn.getAttribute("data-event-id");
           handleUpdateEvent(userID, eventId, ["save", "unsave"][i]);
           isFromGeneral ? Events() : MyEvents();
@@ -100,17 +119,19 @@ export const generateEvent = (event, container, userID = null, ticketSelected = 
   }
 
   const ticketBtn = container.querySelectorAll(".prices-ticket");
+  console.log("ticket element and user id", !!ticketBtn, !!userID);
   if (!!ticketBtn && !!userID) {
     ticketBtn.forEach((btn) =>
       btn.addEventListener("click", (e) => {
-        const [selectedTitle, selectedPrice] = e.target.textContent.split(': ')
+        const [selectedTitle, selectedPrice] = e.target.textContent.split(": ");
         const eventID = event._id;
 
         if (
           confirm(
             `Do you want to purchase the ${selectedTitle} ticket of ${event.title}?`
           )
-        ) fetch(
+        )
+          fetch(
             `http://localhost:3000/api/v1/events/update/${eventID}/confirm`,
             {
               headers: {
@@ -119,14 +140,14 @@ export const generateEvent = (event, container, userID = null, ticketSelected = 
               credentials: "include",
               method: "PUT",
               body: JSON.stringify({
-                selectedPrice: selectedPrice.replaceAll(/[^0-9]/gi, ''),
-                selectedTitle
+                selectedPrice: selectedPrice.replaceAll(/[^0-9]/gi, ""),
+                selectedTitle,
               }),
             }
           )
-          .then(response => response.json())
-          .then(data => console.log(data))
-          .catch(error => console.error(error));
+            .then((response) => response.json())
+            .then((data) => console.log(data))
+            .catch((error) => console.error(error));
       })
     );
   }
@@ -137,7 +158,7 @@ export const generateEvent = (event, container, userID = null, ticketSelected = 
       const eventId = unRegisterBtn.getAttribute("data-event-id");
       if (confirm(`Do you want to cancel your purchase at ${event.title}?`))
         handleUpdateEvent(userID, eventId, "remove");
-        isFromGeneral ? Events() : MyEvents();
+      isFromGeneral ? Events() : MyEvents();
     });
   }
 };

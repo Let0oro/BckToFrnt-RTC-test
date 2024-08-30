@@ -72,13 +72,11 @@ const newEvent = () => {
   const startDate = document.getElementById("startDate");
   const endDate = document.getElementById("endDate");
   const now = new Date().toISOString().split(":").slice(0, -1).join(":");
-  console.log({now})
   startDate.value = now;
   startDate.min = now;
   endDate.min = now;
 
   function resetMinEndDate() {
-    console.log(this);
     endDate.min = this.value;
   }
 

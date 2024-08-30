@@ -23,7 +23,7 @@ const getEvents = async (userID = null) => {
   });
 
   console.log({ events });
-
+  console.log({userID})
   const eventsContainer = document.querySelector("#eventscontainer");
 
   events.forEach((event) =>
@@ -43,7 +43,7 @@ const Events = async (user = { userName: null, _id: null, rol: null }) => {
 
   let objIds;
   if (user._id || cookiesValues) {
-    user = !!user._id ? user : cookiesValues;
+    user = user._id ? user : cookiesValues;
 
     objIds = {
       "inline-block": [
@@ -54,20 +54,16 @@ const Events = async (user = { userName: null, _id: null, rol: null }) => {
       ],
       none: ["loginlink", "registerlink"],
     };
-
-    elemsIdStyleTo(objIds);
-
-    // FrontFetch.caller({})
   } else {
     objIds = {
       "inline-block": ["loginlink", "registerlink", "eventslink"],
       none: ["logoutlink", "myeventslink", "neweventlink"],
     }
-    elemsIdStyleTo(objIds);
   }
+  elemsIdStyleTo(objIds);
 
   document.querySelector("main").innerHTML = template(user.userName);
-  await getEvents(user.userID);
+  await getEvents(user._id);
 };
 
 export default Events;

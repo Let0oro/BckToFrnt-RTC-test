@@ -1,16 +1,12 @@
+import { FrontFetch } from "./Front.fetch";
+
 async function checkLoggedInStatus() {
   try {
-    const response = await fetch(
-      "http://localhost:3000/api/v1/user/is_logged_in",
-      {
-        credentials: "include", // Esto, junto a sameSite: lax, va a permitir acceder a las cookies
-      }
+    const data = FrontFetch.caller(
+      { name: "user", method: "get", action: "isLog" },
+      null,
+      { credentials: "include", sameSite: "lax" }
     );
-
-    if (!response.ok) {
-      throw new Error(`Error fetching data: ${response.statusText}`);
-    }
-    const data = await response.json();
     return data;
   } catch (error) {
     console.error("Error checking login status: %s", String(error.message));

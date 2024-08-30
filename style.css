@@ -32,12 +32,15 @@ body {
 }
 
 h1 {
+  margin: 1rem auto;
+  width: max-content;
   font-size: 3.2em;
   line-height: 1.1;
 }
 
 header > a {
   display: none;
+  margin: 0 .5rem;
 }
 
 ul {
@@ -125,6 +128,16 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+}
+
+#eventscontainer {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem
+}
+
+footer {
+  transform: translateY(3rem);
 }
 
 @media (prefers-color-scheme: light) {

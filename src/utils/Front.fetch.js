@@ -38,27 +38,27 @@ export class FrontFetch {
     try {
       const response = await fetch(url, { ...opts });
       const data = await response.json();
-
+      
       if (!response.ok) {
-        throw new Error(data.message || "Error en la solicitud");
+        throw new Error(data.message || data.statusText || "Error en la solicitud");
       }
 
       return data;
     } catch (error) {
-      console.error("Fetch error:", error);
+      console.error("Fetch error: " + error);
       throw error;
     }
   }
 
-  static async caller(route, formData, headers = {}) {
+  static async caller(route, formData, opts = {}) {
     const { toFormData, parseMethod } = this;
     const { name, method, action, id, status } = route;
     const pMethodLite = parseMethod[name][method];
     const pMethod = action ? pMethodLite[action] : pMethodLite;
 
-    const opts = {
+    opts = {
       method: method.toUpperCase(),
-      headers,
+      ...opts
     };
 
     let image;
