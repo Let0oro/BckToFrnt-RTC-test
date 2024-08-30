@@ -402,17 +402,46 @@ const isLoggedIn = async (req, res) => {
 };
 
 const deleteUser = async (req, res) => {
+
+  console.log("DELETING USER");
+
   const { id } = req.params;
   
   const [error, currentUserId] = await getMySessionId(req);
   if (error) return res.status(401).json(error);
 
   try {
+
     const currentUser = await User.findById(currentUserId).select("rol");
     const user = await User.findById(id);
 
     if (!user)
       return res.status(404).json({ message: "This user doesn't exists" });
+
+    const {eventsSaved, events} = user;
+
+    const removeEventsUser = async (eventID) => {
+      console.log("REMOVE EVENTS USER");
+      console.log({ eventID });
+      const event = await Event.findById(eventID);
+      console.log({event})
+      if (!event)
+        return res.status(404).json("Unauthorized deleting events user");
+      const { attendees: oldAttendees, confirmed: oldConfirmed } = event;
+      console.log({oldAttendees, oldConfirmed})
+      const newAttendees = oldAttendees.filter((userID) => String(userID) != String(id));
+      const newConfirmed = oldConfirmed.filter((userID) => String(userID) != String(id));
+      console.log({newAttendees, newConfirmed})
+      await Event.findByIdAndUpdate(eventID, { $set: {
+
+        attendees: newAttendees,
+        confirmed: newConfirmed,
+      }
+      });
+    };
+
+    eventsSaved.forEach(async (eventID) => await removeEventsUser(eventID));
+    events.forEach(async (eventID) => await removeEventsUser(eventID));
 
     if (id != currentUserId && currentUser.rol != "admin")
       return res.status(401).json({ message: "Unauthorized" });

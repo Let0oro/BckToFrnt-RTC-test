@@ -121,7 +121,6 @@ const updateEventById = async (req, res, next) => {
   const [error, userId] = await getMySessionId(req);
   if (error) return res.status(401).json(error);
 
-  console.log("BODY", req.body);
 
   try {
     let objByAction;
@@ -180,15 +179,11 @@ const updateEventById = async (req, res, next) => {
       ticketPriceSelected: [selectedTitle, Number(selectedPrice)],
     };
 
-    console.log({newEventPurchased})
 
 
-    console.log({
-      removed: "Removed",
-      eventId,
-      action,
-      events
-    });
+
+
+  
     objByAction = {
       save: { $addToSet: { eventsSaved: eventId } },
       unsave: {
@@ -206,7 +201,7 @@ const updateEventById = async (req, res, next) => {
       new: true,
     });
 
-    console.log({newUser})
+
     return res.status(200).json({
       message: `Event and User updated and ${action}${
         action.at(-1) == "e" ? "" : "e"
@@ -225,24 +220,23 @@ const updateEventById = async (req, res, next) => {
 
 const deleteEvent = async (req, res, next) => {
   try {
-    console.log("DELETE EVENT");
+
     const { id } = req.params;
-    // console.log(id);
     const event = await Event.findById(id);
 
     if (!event) return res(404).json({ message: "Event not found" });
     const { attendees, confirmed } = event;
 
     const removeUsersEvents = async (userID) => {
-      console.log("REMOVE USERS EVENTS");
-      console.log({ userID });
+  
+  
       const user = await User.findById(userID);
       if (!user)
         return res.status(404).json("Unauthorized deleting users event");
       const { events: oldEvents, eventsSaved: oldSaved } = user;
       const newEvent = oldEvents.filter((ev) => String(ev._id) != userID);
       const newSaved = oldSaved.filter((ev) => String(ev._id) != userID);
-      console.log({ newEvent });
+  
       await User.findByIdAndUpdate(userID, {
         ...user,
         events: newEvent,
@@ -253,13 +247,13 @@ const deleteEvent = async (req, res, next) => {
     attendees.forEach(async (userID) => await removeUsersEvents(userID));
     confirmed.forEach(async (userID) => await removeUsersEvents(userID));
 
-    console.log({ event });
+
 
     if (event.image && event.image != "no image")
       deleteImgCloudinary(event.image);
     const deletedEvent = await Event.findOneAndDelete(event, { new: true });
 
-    console.log({ attendees });
+
     return res.status(200).json({
       message: "Event deleted succesfully",
       deleteEvent,
