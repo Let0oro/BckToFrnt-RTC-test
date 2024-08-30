@@ -470,13 +470,14 @@ const promoteUser = async (req, res) => {
 
     const { userRol } = user;
 
-    if (userRol == "admin") {
-      return res.status(401).json("This user is already an admin");
-    }
+    // if (userRol == "admin") {
+    //   return res.status(401).json("This user is already an admin");
+    // }
 
     if (id != currentUserId && currentUser.rol != "admin")
       return res.status(401).json({ message: "Unauthorized" });
-    const newUser = await User.findByIdAndUpdate(id, { $set: { rol: "admin" }}, {new: true});
+
+    const newUser = await User.findByIdAndUpdate(id, { $set: { rol: (userRol == "admin" ? "user" : "admin") }}, {new: true});
     return res
       .status(201)
       .json({ message: `User ${user.userName} has been promoted to ${newUser.rol}` });
