@@ -13,8 +13,8 @@ const checkEvents = async () => {
 };
 
 const getMySessionId = async (req) => {
-  let currentUserId = error = undefined;
-  
+  let currentUserId = (error = undefined);
+
   const reqHeadCookies = req.headers?.cookie
     ?.split(";")
     .find((v) => v.startsWith("accessToken="))
@@ -139,7 +139,12 @@ const register = async (req, res) => {
     const existedUser = await User.findOne({ email });
     if (!!existedUser) return res.status(400).json("User already exist");
 
-    const newUser = new User({ userName, email, password, rol: req.body.rol || "user" });
+    const newUser = new User({
+      userName,
+      email,
+      password,
+      rol: req.body.rol || "user",
+    });
     await newUser.save();
 
     const createdUser = await User.findById(newUser._id).select(
@@ -205,27 +210,25 @@ const login = async (req, res) => {
 
     await checkEvents();
 
-    return (
-      res
-        .status(200)
-        .cookie("accessToken", accessToken, {
-          httpOnly: true,
-          secure: true,
-          sameSite: "lax",
-        })
-        .cookie("refreshToken", refreshToken, {
-          httpOnly: true,
-          secure: true,
-          sameSite: "lax",
-        })
-        .header("Authorization", accessToken)
-        .json({
-          user: loggedInUser,
-          accessToken,
-          refreshToken,
-          message: "Logged in successfully",
-        })
-    );
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+      })
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+      })
+      .header("Authorization", accessToken)
+      .json({
+        user: loggedInUser,
+        accessToken,
+        refreshToken,
+        message: "Logged in successfully",
+      });
   } catch (error) {
     return res
       .status(500)
@@ -402,41 +405,36 @@ const isLoggedIn = async (req, res) => {
 };
 
 const deleteUser = async (req, res) => {
-
-  console.log("DELETING USER");
-
   const { id } = req.params;
-  
+
   const [error, currentUserId] = await getMySessionId(req);
   if (error) return res.status(401).json(error);
 
   try {
-
     const currentUser = await User.findById(currentUserId).select("rol");
     const user = await User.findById(id);
 
     if (!user)
       return res.status(404).json({ message: "This user doesn't exists" });
 
-    const {eventsSaved, events} = user;
+    const { eventsSaved, events } = user;
 
     const removeEventsUser = async (eventID) => {
-      console.log("REMOVE EVENTS USER");
-      console.log({ eventID });
       const event = await Event.findById(eventID);
-      console.log({event})
       if (!event)
         return res.status(404).json("Unauthorized deleting events user");
       const { attendees: oldAttendees, confirmed: oldConfirmed } = event;
-      console.log({oldAttendees, oldConfirmed})
-      const newAttendees = oldAttendees.filter((userID) => String(userID) != String(id));
-      const newConfirmed = oldConfirmed.filter((userID) => String(userID) != String(id));
-      console.log({newAttendees, newConfirmed})
-      await Event.findByIdAndUpdate(eventID, { $set: {
-
-        attendees: newAttendees,
-        confirmed: newConfirmed,
-      }
+      const newAttendees = oldAttendees.filter(
+        (userID) => String(userID) != String(id)
+      );
+      const newConfirmed = oldConfirmed.filter(
+        (userID) => String(userID) != String(id)
+      );
+      await Event.findByIdAndUpdate(eventID, {
+        $set: {
+          attendees: newAttendees,
+          confirmed: newConfirmed,
+        },
       });
     };
 
@@ -446,14 +444,49 @@ const deleteUser = async (req, res) => {
     if (id != currentUserId && currentUser.rol != "admin")
       return res.status(401).json({ message: "Unauthorized" });
     await User.findByIdAndDelete(id);
-    return res.status(201).json({message: `User ${user.email} has been deleted`});
-
+    return res
+      .status(201)
+      .json({ message: `User ${user.email} has been deleted` });
   } catch (error) {
     console.error(error);
     res
       .status(500)
-      .json({ message: ("Error creating user %s", error.message) });
+      .json({ message: ("Error deleting user %s", error.message) });
   }
+};
+
+const promoteUser = async (req, res) => {
+  const { id } = req.params;
+
+  const [error, currentUserId] = await getMySessionId(req);
+  if (error) return res.status(401).json(error);
+
+  try {
+    const currentUser = await User.findById(currentUserId).select("rol");
+    const user = await User.findById(id);
+
+    if (!user)
+      return res.status(404).json({ message: "This user doesn't exists" });
+
+    const { userRol } = user;
+
+    if (userRol == "admin") {
+      return res.status(401).json("This user is already an admin");
+    }
+
+    if (id != currentUserId && currentUser.rol != "admin")
+      return res.status(401).json({ message: "Unauthorized" });
+    const newUser = await User.findByIdAndUpdate(id, { $set: { rol: "admin" }}, {new: true});
+    return res
+      .status(201)
+      .json({ message: `User ${user.userName} has been promoted to ${newUser.rol}` });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: ("Error promoting user %s", error.message) });
+  }
+
 };
 
 module.exports = {
@@ -468,5 +501,6 @@ module.exports = {
   isLoggedIn,
   chooseForAdmin,
   deleteUser,
-  getMySessionId
+  getMySessionId,
+  promoteUser,
 };

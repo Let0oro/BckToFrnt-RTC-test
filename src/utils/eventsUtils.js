@@ -19,7 +19,7 @@ const reloadPage = async (isFromGeneral) => {
 const handleUpdateEvent = async (userID, eventId, status, mail = null) => {
   try {
     const data = await FrontFetch.caller(
-      { name: "events", method: "put", id: eventId, status },
+      { name: "events", method: "put", action: "addEvent", id: eventId, status },
       JSON.stringify({ attendees: [userID] })
     );
 
@@ -40,15 +40,13 @@ async function handleTicketPurchase(e, event) {
   const [selectedTitle, selectedPrice] = e.target.textContent.split(": ").map(p => p.trim());
   const eventID = event._id;
 
-  console.log(e.target.textContent, "body: ", String(selectedPrice), ">", String(selectedPrice.replaceAll(/[^0-9]/gi, "")))
-
   if (
     confirm(
       `Do you want to purchase the ${selectedTitle} ticket of ${event.title}?`
     )
   )
     await FrontFetch.caller(
-      { name: "events", method: "put", id: eventID, status: "confirm" },
+      { name: "events", method: "put", action: "addEvent", id: eventID, status: "confirm" },
       {
         selectedPrice: String(selectedPrice.replaceAll(/[^0-9]/gi, "")),
         selectedTitle,

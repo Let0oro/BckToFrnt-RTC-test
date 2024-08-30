@@ -19,4 +19,8 @@ document.querySelector("#neweventlink").addEventListener("click", newEvent);
 
 document.querySelector("#logoutlink").addEventListener("click", logout);
 
+// document.querySelector("#logoutlink").addEventListener("click", logout);
+
+// document.querySelector("#logoutlink").addEventListener("click", logout);
+
 Events();

@@ -11,7 +11,7 @@ export class FrontFetch {
         refreshToken: "/refresh-token",
         chooseAdmin: "/admin",
       },
-      put: "/add_event/",
+      put: { addEvent: "/add_event/", promote: "/promote/", update: "/update/" },
       delete: "/",
     },
     events: {
