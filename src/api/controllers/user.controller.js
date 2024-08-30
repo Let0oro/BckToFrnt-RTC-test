@@ -13,6 +13,8 @@ const checkEvents = async () => {
 };
 
 const getMySessionId = async (req) => {
+  let currentUserId = error = undefined;
+  
   const reqHeadCookies = req.headers?.cookie
     ?.split(";")
     .find((v) => v.startsWith("accessToken="))
@@ -21,20 +23,19 @@ const getMySessionId = async (req) => {
   try {
     const token = reqHeadCookies || req.cookies?.accessToken;
     if (!token) {
-      return res
-        .status(401)
-        .json({ message: "No se proporcionó token de autenticación" });
+      error = { message: "No se proporcionó token de autenticación" };
     }
     const decodedToken = await jwt.verify(
       token,
       process.env.ACCESS_TOKEN_SECRET
     );
-    const currentUserId = decodedToken._id;
-    return currentUserId;
+    currentUserId = decodedToken._id;
   } catch (err) {
-    return res.status(401).json({
+    error = {
       message: "Ha surgido un problema con el token de autenticación",
-    });
+    };
+  } finally {
+    return [error, currentUserId];
   }
 };
 
@@ -138,7 +139,7 @@ const register = async (req, res) => {
     const existedUser = await User.findOne({ email });
     if (!!existedUser) return res.status(400).json("User already exist");
 
-    const newUser = new User({ userName, email, password, rol: "user" });
+    const newUser = new User({ userName, email, password, rol: req.body.rol || "user" });
     await newUser.save();
 
     const createdUser = await User.findById(newUser._id).select(
@@ -190,11 +191,6 @@ const login = async (req, res) => {
     if (!user)
       return res.status(404).json({ message: "This user doesn't exists" });
 
-    // if (bcrypt.compareSync(password, user.password)) {
-    //     const token = generateKey(user._id);
-    //     return res.status(200).json({ token, user })
-    // }
-
     const isValidPassword = await user.comparePassword(password);
     if (!isValidPassword)
       return res.status(401).json({ message: "Invalid password provided" });
@@ -202,31 +198,16 @@ const login = async (req, res) => {
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
       user._id
     );
-    // Other way:
-    // const token = generateKey(user._id);
 
     const loggedInUser = await User.findById(user._id).select(
       "-password -refreshToken"
     );
-
-    const options = {
-      httpOnly: false,
-      secure: true,
-      sameSite: "lax",
-      resave: true,
-      maxAge: 2600000,
-    };
 
     await checkEvents();
 
     return (
       res
         .status(200)
-        // .cookie("token", null, { ...options, resave: false, httpOnly: true })
-        // .cookie("token", token, { ...options, httpOnly: true })
-        // .cookie("email", email, options)
-        // .cookie("userName", userName, options)
-        // .cookie("pass", password, options)
         .cookie("accessToken", accessToken, {
           httpOnly: true,
           secure: true,
@@ -240,25 +221,11 @@ const login = async (req, res) => {
         .header("Authorization", accessToken)
         .json({
           user: loggedInUser,
-          // token,
           accessToken,
           refreshToken,
           message: "Logged in successfully",
         })
     );
-
-    /* Other way:
-    return res
-      .status(201)
-      .cookie('accessToken', accessToken, options)
-      .cookie('refreshtoken, refreshToken, options)
-      .json({
-        user: loggedInUser,
-        accesstoken,
-        refreshToken,
-        message: 'Logged in successfully'
-      })
-    */
   } catch (error) {
     return res
       .status(500)
@@ -271,7 +238,9 @@ const addEventsUser = async (req, res, next) => {
     const { id } = req.params;
 
     if (String(req.user._id) != String(id)) {
-      return res.status(400).json({ message: "You can't modify other user's events" });
+      return res
+        .status(400)
+        .json({ message: "You can't modify other user's events" });
     }
 
     const oldUser = await User.findById(id);
@@ -290,12 +259,15 @@ const addEventsUser = async (req, res, next) => {
 
 const updateUser = async (req, res, next) => {
   try {
-    const id = await getMySessionId(req);
+    const [error, id] = await getMySessionId(req);
+    if (error) return res.status(401).json(error);
 
     const oldUser = await User.findById(id);
 
     if (!oldUser) {
-      return res.status(404).json({ message: "Fatal error, this account doesn't exists" });
+      return res
+        .status(404)
+        .json({ message: "Fatal error, this account doesn't exists" });
     }
 
     const { password, eventsSaved } = oldUser;
@@ -308,12 +280,13 @@ const updateUser = async (req, res, next) => {
   } catch (err) {
     return res.status(400).json({ message: "Error", error: err.message });
   }
-}
+};
 
 const chooseForAdmin = async (req, res) => {
   const { id, action } = req.params;
 
-  const currentUserId = await getMySessionId(req);
+  const [error, currentUserId] = await getMySessionId(req);
+  if (error) return res.status(401).json(error);
 
   try {
     const currentUser = await User.findById(currentUserId).select("rol");
@@ -403,7 +376,8 @@ const logoutUser = async (req, res) => {
 
 const isLoggedIn = async (req, res) => {
   try {
-    const userId = await getMySessionId(req);
+    const [error, userId] = await getMySessionId(req);
+    if (error) return res.status(401).json(error);
 
     const { accessToken, refreshToken } =
       await generateAccessAndRefreshTokens(userId);
@@ -429,21 +403,9 @@ const isLoggedIn = async (req, res) => {
 
 const deleteUser = async (req, res) => {
   const { id } = req.params;
-
-  const reqHeadCookies = req.headers?.cookie
-    ?.split(";")
-    .find((v) => v.startsWith("accessToken="))
-    ?.split("accessToken=")[1];
-
-  const token = reqHeadCookies || req.cookies?.accessToken;
-  if (!token) {
-    return res
-      .status(401)
-      .json({ message: "No se proporcionó token de autenticación" });
-  }
-
-  const decodedToken = await jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-  const currentUserId = decodedToken._id;
+  
+  const [error, currentUserId] = await getMySessionId(req);
+  if (error) return res.status(401).json(error);
 
   try {
     const currentUser = await User.findById(currentUserId).select("rol");
@@ -454,7 +416,9 @@ const deleteUser = async (req, res) => {
 
     if (id != currentUserId && currentUser.rol != "admin")
       return res.status(401).json({ message: "Unauthorized" });
-    const deletedUser = User.findByIdAndDelete(id);
+    await User.findByIdAndDelete(id);
+    return res.status(201).json({message: `User ${user.email} has been deleted`});
+
   } catch (error) {
     console.error(error);
     res
@@ -475,4 +439,5 @@ module.exports = {
   isLoggedIn,
   chooseForAdmin,
   deleteUser,
+  getMySessionId
 };

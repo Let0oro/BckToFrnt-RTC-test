@@ -3,11 +3,13 @@ const User = require("../api/models/user.model");
 
 const getMyAuthSessionUser = async (req, res) => {
 
+  let user = error = null;
+
   const token =
     req.cookies?.accessToken ||
     req.header("Authorization")?.replace("Bearer ", "");
 
-  if (!token) return res.status(401).json({ message: "Token not found" });
+  if (!token) error = { message: "Token not found" };
 
   try {
     const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
@@ -16,20 +18,20 @@ const getMyAuthSessionUser = async (req, res) => {
       "-password -refreshToken"
     );
 
-    if (!user)
-      return res
-        .status(404)
-        .json({ message: "User not found at verifyJWT function" });
+    if (!user) error = { message: "User not found at verifyJWT function" };
 
     return user;
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
+  } catch (err) {
+     error = { message: err.message };
+  } finally {
+    return [error, user];
   }
 };
 
 const isAdmin = async (req, res, next) => {
   try {
-    const user = await getMyAuthSessionUser(req, res);
+    const [error, user] = await getMyAuthSessionUser(req, res);
+    if (error) return res.status(400).json(error)
 
     if (!user) return res.status(404).json({message: "The user hasnt been founded"})
 
@@ -47,7 +49,8 @@ const isAdmin = async (req, res, next) => {
 const verifyJWT = async (req, res, next) => {
 
   try {
-    const user = await getMyAuthSessionUser(req, res)
+    const [error, user] = await getMyAuthSessionUser(req, res);
+    if (error) return res.status(400).json(error)
 
     req.user = user;
     next();

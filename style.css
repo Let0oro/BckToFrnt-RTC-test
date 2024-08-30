@@ -68,6 +68,10 @@ ul {
     width: max-content;
     cursor: pointer;
 
+    & span {
+      pointer-events: none;
+    }
+
     &:hover {
       background-color: #ccc4;
       border: 1px solid #646cff;

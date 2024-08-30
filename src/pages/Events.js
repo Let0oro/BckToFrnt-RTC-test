@@ -22,13 +22,14 @@ const getEvents = async (userID = null) => {
     action: "get",
   });
 
-  console.log({ events });
-  console.log({userID})
   const eventsContainer = document.querySelector("#eventscontainer");
 
-  events.forEach((event) =>
-    generateEvent(event, eventsContainer, userID, null, true)
+  if (eventsContainer) {
+    console.log({events})
+    await events.forEach((event) =>
+      generateEvent(event, eventsContainer, userID, null, true)
   );
+}
 };
 
 const elemsIdStyleTo = (obj) => {

@@ -6,28 +6,9 @@ const handleUpdateEvent = async (userID, eventId, status, mail = null) => {
   try {
     const data = await FrontFetch.caller(
       { name: "events", method: "put", id: eventId, status },
-      JSON.stringify({ attendees: [userID] }),
-      {
-        credentials: "include",
-      }
+      JSON.stringify({ attendees: [userID] })
     );
-    // const response = await fetch(
-    //   `http://localhost:3000/api/v1/events/update/${eventId}/${status}`,
-    //   {
-    //     method: "PUT",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     credentials: "include",
-    //     body: JSON.stringify({
-    //       attendees: [userID],
-    //     }),
-    //   }
-    // );
 
-    // if (response.ok) {
-    //   const responseOk = await response.json();
-    //   console.log(responseOk.message);
     if (status == "save" || status == "remove")
       alert(
         {
@@ -35,27 +16,50 @@ const handleUpdateEvent = async (userID, eventId, status, mail = null) => {
           remove: "Se ha cancelado la compra de este evento",
         }[status]
       );
-    // } else {
-    //   console.error(response);
-    //   const responseError = await response.json();
-    //   console.error(responseError);
-    // }
   } catch (error) {
     console.error("Unexpected error", error);
   }
 };
 
-export const generateEvent = (
+async function handleTicketPurchase(e, event) {
+  e.preventDefault();
+  const [selectedTitle, selectedPrice] = e.target.textContent.split(": ").map(p => p.trim());
+  const eventID = event._id;
+
+  console.log(e.target.textContent, "body: ", String(selectedPrice), ">", String(selectedPrice.replaceAll(/[^0-9]/gi, "")))
+
+  if (
+    confirm(
+      `Do you want to purchase the ${selectedTitle} ticket of ${event.title}?`
+    )
+  )
+    await FrontFetch.caller(
+      { name: "events", method: "put", id: eventID, status: "confirm" },
+      {
+        selectedPrice: String(selectedPrice.replaceAll(/[^0-9]/gi, "")),
+        selectedTitle,
+      }
+    )
+      .then((data) => console.log(data))
+      .catch((error) => console.error(error));
+}
+
+export const generateEvent = async (
   event,
   container,
   userID = null,
   ticketSelected = null,
   isFromGeneral
 ) => {
+  // console.log({ event, container });
   const li = document.createElement("li");
+  const user = await FrontFetch.caller(
+    { name: "user", method: "get", action: "get", id: userID },
+    null,
+    { credentials: "include" }
+  );
 
-  console.log({ event });
-  console.log(event.attendees.includes(userID));
+  // console.log({ userEvents: user.events, userSaves: user.eventsSaved });
 
   li.innerHTML = `
       <img src=${event.image} alt=${event.title} height="300"/>
@@ -74,10 +78,11 @@ export const generateEvent = (
       <h4 class="tit" >Precios</h4> <div class="prices">${
         !ticketSelected
           ? event.ticketPrice
-              .map(
-                (price) =>
-                  `<button class="prices-ticket">${price[0]}: <span class="tit">${price[1]}€</span></button>`
-              )
+              .map((price, i) => {
+                // console.log(price);
+                // console.log(event)
+                return `<button class=${"prices-ticket"}>${price[0]}: <span class="tit">${price[1]}€</span></button>`;
+              })
               .join(" ")
           : `<button>${ticketSelected[0]}: <span class="tit">${ticketSelected[1]}€</span></button>`
       }</div>
@@ -102,57 +107,45 @@ export const generateEvent = (
     `;
   container.appendChild(li);
 
-  const saveBtn = container.querySelector(".save-btn");
-  const unSaveBtn = container.querySelector(".unsave-btn");
+  const saveBtn = li.querySelector(".save-btn");
+  const unSaveBtn = li.querySelector(".unsave-btn");
 
   if (saveBtn || unSaveBtn) {
     [saveBtn, unSaveBtn].forEach(
       (btn, i) =>
         btn &&
-        btn.addEventListener("click", (e) => {
+        btn.addEventListener("click", async (e) => {
           e.preventDefault();
           const eventId = btn.getAttribute("data-event-id");
-          handleUpdateEvent(userID, eventId, ["save", "unsave"][i]);
-          isFromGeneral ? Events() : MyEvents();
+          const status = ["save", "unsave"][i];
+
+          handleUpdateEvent(userID, eventId, ["save", "unsave"][i]).then(() => {
+            isFromGeneral ? Events() : MyEvents();
+          });
         })
     );
   }
 
-  const ticketBtn = container.querySelectorAll(".prices-ticket");
-  console.log("ticket element and user id", !!ticketBtn, !!userID);
-  if (!!ticketBtn && !!userID) {
+  const ticketBtn = li.querySelectorAll(".prices-ticket");
+  if (ticketBtn && userID) {
+    // const ticketBtnLength = ticketBtn.length;
+    // for (let i = 0; i < ticketBtnLength; i++) {
+    //   ticketBtn[i].addEventListener("click", (e) =>
+    //     handleTicketPurchase(e, event).then(() => {
+    //       isFromGeneral ? Events() : MyEvents();
+    //     })
+    //   );
+    // }
     ticketBtn.forEach((btn) =>
-      btn.addEventListener("click", (e) => {
-        const [selectedTitle, selectedPrice] = e.target.textContent.split(": ");
-        const eventID = event._id;
-
-        if (
-          confirm(
-            `Do you want to purchase the ${selectedTitle} ticket of ${event.title}?`
-          )
-        )
-          fetch(
-            `http://localhost:3000/api/v1/events/update/${eventID}/confirm`,
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-              credentials: "include",
-              method: "PUT",
-              body: JSON.stringify({
-                selectedPrice: selectedPrice.replaceAll(/[^0-9]/gi, ""),
-                selectedTitle,
-              }),
-            }
-          )
-            .then((response) => response.json())
-            .then((data) => console.log(data))
-            .catch((error) => console.error(error));
-      })
+      btn.addEventListener("click", (e) =>
+        handleTicketPurchase(e, event).then(() => {
+          isFromGeneral ? Events() : MyEvents();
+        })
+      )
     );
   }
 
-  const unRegisterBtn = document.querySelector(".unregister-btn");
+  const unRegisterBtn = li.querySelector(".unregister-btn");
   if (!!unRegisterBtn) {
     unRegisterBtn.addEventListener("click", () => {
       const eventId = unRegisterBtn.getAttribute("data-event-id");

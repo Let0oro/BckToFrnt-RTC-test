@@ -11,6 +11,7 @@ const newEventSeed = {
     ["Gampling Easy tent 1/2 people", 195],
     ["Gampling Deluxe individual", 215],
   ],
+  image: "https://res.cloudinary.com/diqbcv9f1/image/upload/v1724795454/Events/kxbscnvwpn9r6yy02min.jpg",
   location: "Viveiro, Galicia",
   date: ["2024-06-26T00:00:00", "2024-06-29T00:00:00"],
   description:
