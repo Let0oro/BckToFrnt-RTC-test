@@ -1,4 +1,4 @@
-import Login from "#pages/Login";
+import Events from "#pages/Events";
 import { FrontFetch } from "./Front.fetch";
 
 const logout = async () => {
@@ -7,7 +7,7 @@ const logout = async () => {
 
     alert("See you soon!");
 
-    Login();
+    Events();
   } catch (err) {
     console.error({ message: "Logout failed", error: err.message });
   }

@@ -140,7 +140,6 @@ const createSubmit = async (e) => {
       document.querySelector("form input").value = "";
     }
 
-    console.log({ dataRes });
   } else {
     alert(
       `Tienes que rellenar todos los campos, campos faltantes: [${Object.keys(

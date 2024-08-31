@@ -3,13 +3,17 @@ import { FrontFetch } from "#utils/Front.fetch";
 
 const template = () => `
 <section id="myevents">
-  <h3>Events purchased</h3>
-  <ul id="events-purchased">
-  </ul>
-  <hr/>
-  <h3>Events saved</h3>
-  <ul id="events-saved">
-  </ul>
+  <div>
+    <h3>Events purchased</h3>
+    <ul id="events-purchased">
+    </ul>
+  </div>
+    <hr />
+  <div>
+    <h3>Events saved</h3>
+    <ul id="events-saved">
+    </ul>
+  </div>
 </section>
 `;
 

@@ -59,7 +59,7 @@ const Events = async (user = { userName: null, _id: null, rol: null }) => {
   } else {
     objIds = {
       "inline-block": ["loginlink", "registerlink", "eventslink"],
-      none: ["logoutlink", "myeventslink", "neweventlink"],
+      none: ["logoutlink", "myeventslink", "neweventlink", "userlistlink", "profilelink"],
     }
   }
   elemsIdStyleTo(objIds);

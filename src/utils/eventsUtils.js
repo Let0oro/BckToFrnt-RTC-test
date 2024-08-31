@@ -5,13 +5,10 @@ import { FrontFetch } from "./Front.fetch";
 const reloadPage = async (isFromGeneral) => {
   setTimeout(() => {
     if (isFromGeneral) {
-      console.log({isFromGeneral, to: "Events"})
       Events()
     } else {
-      console.log({isFromGeneral, to: "MyEvents"})
       MyEvents()
     }
-    // (isFromGeneral ? () => Events() : () => MyEvents())();
 
   }, 100)
 }
@@ -63,7 +60,6 @@ export const generateEvent = async (
   ticketSelected = null,
   isFromGeneral
 ) => {
-  // console.log({ event, container });
   const li = document.createElement("li");
   const user = await FrontFetch.caller(
     { name: "user", method: "get", action: "get", id: userID },

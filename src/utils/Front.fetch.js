@@ -12,7 +12,7 @@ export class FrontFetch {
         chooseAdmin: "/admin",
       },
       put: { addEvent: "/add_event/", promote: "/promote/", update: "/update/" },
-      delete: "/",
+      delete: "/delete/",
     },
     events: {
       get: { get: "/", myEvents: "/my_events" },
@@ -37,6 +37,7 @@ export class FrontFetch {
   static async Fetch(url, opts = {}) {
     try {
       const response = await fetch(url, { ...opts });
+      console.log({response})
       const data = await response.json();
       
       if (!response.ok) {
@@ -56,8 +57,6 @@ export class FrontFetch {
     const pMethodLite = parseMethod[name][method];
     const pMethod = action ? pMethodLite[action] : pMethodLite;
 
-    // console.log("FETCH");
-
     opts = {
       method: method.toUpperCase(),
       ...opts
@@ -66,13 +65,9 @@ export class FrontFetch {
     let image;
     if (formData) image = formData?.image;
     if (image) delete formData.image;
-    
-    // if (formData) console.log({formData});
-    
+        
     if (formData) formData = await (image ? toFormData(formData, image) : toFormData(formData));
     
-    // if (formData) console.log({selPrice: formData.get("selectedPrice"), selTitle: formData.get("selectedTitle")});
-
     if (formData) opts.body = formData;
     if (name != "user" || method != "get") opts.credentials = "include";
 
