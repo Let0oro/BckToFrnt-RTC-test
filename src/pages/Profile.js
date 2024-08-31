@@ -1,11 +1,10 @@
 import { FrontFetch } from "#utils/Front.fetch";
 import init from "#utils/initWithCookiesSession";
-import Login from "./Login";
+import Register from "./Register";
 
-export const templateUser = async (user, sameUser, index) =>
-  user
+export const templateUser = async (user, sameUser, index, itsMe = null) => user
     ? `
-    <h4>${user.userName}</h4>${" "}<span>[${user.rol}]</span>
+    <h4>${user.userName}</h4>${" "}<span>[${user.rol}]</span> ${itsMe ? '<a href="#">Me!</a>' : ""}
     <p>Email: ${user.userName}</p>
 
     ${sameUser ? `<p><b>Events saved:</b></p>
@@ -18,7 +17,7 @@ export const templateUser = async (user, sameUser, index) =>
     </ul>
     <p><b>Created at:</b> ${new Date(user.createdAt).toLocaleString()}</p>
     <div>
-    ${sameUser ? "" : `<button class="promoteUsrBtn" aria-data-index="${index}" >Promote</button>`}
+    ${sameUser ? "" : `<button class="promoteUsrBtn" aria-data-index="${index}" >${user.rol == "admin" ? `UnPromote` : `Promote`}</button>`}
     <button class="removeUsr${sameUser ? "" : "s"}Btn" >Remove</button></div>
     
 `
@@ -45,13 +44,16 @@ const Profile = async () => {
   if (removeBtn) {
     removeBtn.addEventListener("click", async (e) => {
       e.preventDefault();
-      await FrontFetch.caller({
-        name: "user",
-        method: "delete",
-        id: userID,
-      });
-      alert(`User ${user.userName} has been deleted`);
-      Register();
+      if (confirm("¿Eliminar tu cuenta con todos tus datos?")) {
+
+        await FrontFetch.caller({
+          name: "user",
+          method: "delete",
+          id: userID,
+        });
+        alert(`User ${user.userName} has been deleted`);
+        Register();
+      }
     });
   }
 };

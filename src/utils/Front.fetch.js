@@ -9,7 +9,6 @@ export class FrontFetch {
         login: "/login",
         logout: "/logout",
         refreshToken: "/refresh-token",
-        chooseAdmin: "/admin",
       },
       put: { addEvent: "/add_event/", promote: "/promote/", update: "/update/" },
       delete: "/delete/",
@@ -37,7 +36,6 @@ export class FrontFetch {
   static async Fetch(url, opts = {}) {
     try {
       const response = await fetch(url, { ...opts });
-      console.log({response})
       const data = await response.json();
       
       if (!response.ok) {

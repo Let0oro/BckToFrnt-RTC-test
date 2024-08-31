@@ -5,13 +5,12 @@ import { FrontFetch } from "./Front.fetch";
 const reloadPage = async (isFromGeneral) => {
   setTimeout(() => {
     if (isFromGeneral) {
-      Events()
+      Events();
     } else {
-      MyEvents()
+      MyEvents();
     }
-
-  }, 100)
-}
+  }, 100);
+};
 
 const handleUpdateEvent = async (userID, eventId, status, mail = null) => {
   try {
@@ -34,7 +33,9 @@ const handleUpdateEvent = async (userID, eventId, status, mail = null) => {
 
 async function handleTicketPurchase(e, event) {
   e.preventDefault();
-  const [selectedTitle, selectedPrice] = e.target.textContent.split(": ").map(p => p.trim());
+  const [selectedTitle, selectedPrice] = e.target.textContent
+    .split(": ")
+    .map((p) => p.trim());
   const eventID = event._id;
 
   if (
@@ -48,9 +49,7 @@ async function handleTicketPurchase(e, event) {
         selectedPrice: String(selectedPrice.replaceAll(/[^0-9]/gi, "")),
         selectedTitle,
       }
-    )
-      .then((data) => console.log(data))
-      .catch((error) => console.error(error));
+    );
 }
 
 export const generateEvent = async (
@@ -84,11 +83,10 @@ export const generateEvent = async (
       <h4 class="tit" >Precios</h4> <div class="prices">${
         !ticketSelected
           ? event.ticketPrice
-              .map((price, i) => {
-                // console.log(price);
-                // console.log(event)
-                return `<button class=${"prices-ticket"}>${price[0]}: <span class="tit">${price[1]}€</span></button>`;
-              })
+              .map(
+                (price, i) =>
+                  `<button class=${"prices-ticket"}>${price[0]}: <span class="tit">${price[1]}€</span></button>`
+              )
               .join(" ")
           : `<button>${ticketSelected[0]}: <span class="tit">${ticketSelected[1]}€</span></button>`
       }</div>
@@ -126,8 +124,8 @@ export const generateEvent = async (
           const status = ["save", "unsave"][i];
 
           handleUpdateEvent(userID, eventId, status).then(() => {
-            reloadPage(isFromGeneral)
-          })
+            reloadPage(isFromGeneral);
+          });
         })
     );
   }
@@ -137,7 +135,7 @@ export const generateEvent = async (
     ticketBtn.forEach((btn) =>
       btn.addEventListener("click", (e) =>
         handleTicketPurchase(e, event).then(() => {
-          reloadPage(isFromGeneral)
+          reloadPage(isFromGeneral);
         })
       )
     );
@@ -149,7 +147,7 @@ export const generateEvent = async (
       const eventId = unRegisterBtn.getAttribute("data-event-id");
       if (confirm(`Do you want to cancel your purchase at ${event.title}?`))
         handleUpdateEvent(userID, eventId, "remove").then(() => {
-          reloadPage(isFromGeneral)
+          reloadPage(isFromGeneral);
         });
     });
   }

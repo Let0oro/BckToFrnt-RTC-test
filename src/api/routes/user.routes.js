@@ -9,7 +9,6 @@ const {
   addEventsUser,
   logoutUser,
   isLoggedIn,
-  chooseForAdmin,
   deleteUser,
   promoteUser
 } = require("../controllers/user.controller.js");
@@ -24,7 +23,6 @@ userRouter.post("/login", login);
 userRouter.post("/logout", logoutUser);
 userRouter.put("/promote/:id", verifyJWT, promoteUser);
 userRouter.put("/update", [verifyJWT, userUpload.single("image")], updateUser);
-userRouter.put("/admin/:id", [verifyJWT, isAdmin], chooseForAdmin);
 userRouter.put("/add_event/:id", verifyJWT, addEventsUser);
 userRouter.delete("/delete/:id", verifyJWT, deleteUser);
 

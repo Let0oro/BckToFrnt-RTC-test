@@ -285,42 +285,6 @@ const updateUser = async (req, res, next) => {
   }
 };
 
-const chooseForAdmin = async (req, res) => {
-  const { id, action } = req.params;
-
-  const [error, currentUserId] = await getMySessionId(req);
-  if (error) return res.status(401).json(error);
-
-  try {
-    const currentUser = await User.findById(currentUserId).select("rol");
-    const user = await User.findById(id);
-
-    if (!user)
-      return res.status(404).json({ message: "This user doesn't exists" });
-
-    if (currentUser.rol != "admin" && action && user.rol == "admin") {
-      return res.status(400).json({ message: "This user is already an admin" });
-    }
-
-    if (currentUser.rol != "admin" && !action && user.rol == "user") {
-      return res.status(400).json({ message: "This user is already an user" });
-    }
-
-    if (currentUser.rol != "admin")
-      return res.status(401).json({ message: "Unauthorized!" });
-
-    const updatedUser = User.findByIdAndUpdate(id, {
-      ...user,
-      rol: action ? "admin" : "user",
-    });
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ message: ("Error creating user %s", error.message) });
-  }
-};
-
 const logoutUser = async (req, res) => {
   const reqHeadCookies = req.headers?.cookie
     ?.split(";")
@@ -468,9 +432,9 @@ const promoteUser = async (req, res) => {
     if (!user)
       return res.status(404).json({ message: "This user doesn't exists" });
 
-    const { userRol } = user;
+    const { rol: userRol } = user;
 
-    if (id != currentUserId && currentUser.rol != "admin")
+    if (currentUser.rol != "admin")
       return res.status(401).json({ message: "Unauthorized" });
 
     const newUser = await User.findByIdAndUpdate(id, { $set: { rol: (userRol == "admin" ? "user" : "admin") }}, {new: true});
@@ -496,7 +460,6 @@ module.exports = {
   logoutUser,
   refreshAccessToken,
   isLoggedIn,
-  chooseForAdmin,
   deleteUser,
   getMySessionId,
   promoteUser,

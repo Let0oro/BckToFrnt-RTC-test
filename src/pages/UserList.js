@@ -1,8 +1,22 @@
+
 import { FrontFetch } from "#utils/Front.fetch";
-import Events from "./Events";
+import init from "#utils/initWithCookiesSession";
 import { templateUser } from "./Profile";
 
 const UserList = async () => {
+  const cookiesValues = await init();
+
+  if (!cookiesValues) return template(null);
+
+  const { _id: userID } = cookiesValues;
+
+  const myUser = await FrontFetch.caller({
+    name: "user",
+    method: "get",
+    action: "get",
+    id: userID,
+  });
+
   const users = await FrontFetch.caller({
     name: "user",
     method: "get",
@@ -12,8 +26,9 @@ const UserList = async () => {
   const template = await users.map(async (user, index) => {
     const div = document.createElement("div");
     div.className = "userListLi";
+    const itsMe = (userID === user._id);
 
-    div.innerHTML = await templateUser(user, false, index);
+    div.innerHTML = await templateUser(user, false, index, itsMe);
 
     return div.outerHTML;
   });
@@ -32,7 +47,7 @@ const UserList = async () => {
             name: "user",
             method: "delete",
             id: users[index]._id,
-          }).then(() => Events());
+          }).then(() => UserList());
       });
 
       const promoteBtn = dv.querySelector(".promoteUsrBtn");
@@ -46,7 +61,7 @@ const UserList = async () => {
             method: "put",
             action: "promote",
             id: users[idIndex]._id,
-          }).then(() => Events());
+          }).then(() => UserList());
       });
     });
   }
