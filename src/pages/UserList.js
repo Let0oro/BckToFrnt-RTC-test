@@ -9,26 +9,27 @@ const UserList = async () => {
   if (!cookiesValues) return template(null);
 
   const { _id: userID } = cookiesValues;
+  let users;
+  let loading = true;
 
-  const myUser = await FrontFetch.caller({
-    name: "user",
-    method: "get",
-    action: "get",
-    id: userID,
-  });
-
-  const users = await FrontFetch.caller({
-    name: "user",
-    method: "get",
-    action: "get",
-  });
+  try {
+    users = await FrontFetch.caller({
+      name: "user",
+      method: "get",
+      action: "get",
+    });
+  } catch {
+    console.error(error);
+  } finally {
+    loading = false
+  }
 
   const template = await users.map(async (user, index) => {
     const div = document.createElement("div");
     div.className = "userListLi";
     const itsMe = (userID === user._id);
 
-    div.innerHTML = await templateUser(user, false, index, itsMe);
+    div.innerHTML = await templateUser(user, false, index, itsMe, loading);
 
     return div.outerHTML;
   });

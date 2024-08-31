@@ -60,13 +60,31 @@ export const generateEvent = async (
   isFromGeneral
 ) => {
   const li = document.createElement("li");
-  const user = await FrontFetch.caller(
-    { name: "user", method: "get", action: "get", id: userID },
-    null,
-    { credentials: "include" }
-  );
 
-  li.innerHTML = `
+  let userNames;
+  let loading = true;
+
+  try {
+    userNames = await Promise.all(
+      event.confirmed.map(
+        async (confId) => {
+          const dataUser = await FrontFetch.caller({
+            name: "user",
+            method: "get",
+            action: "get",
+            id: confId,
+          });
+          return dataUser.userName;
+        }
+      )
+    );
+  } catch {
+    console.error(error);
+  } finally {
+    loading = false
+  }
+  
+  li.innerHTML = userNames ? `
       <img src=${event.image} alt=${event.title} height="300"/>
       <h3>${event.title}</h3>
       <h4>${event.date
@@ -92,6 +110,7 @@ export const generateEvent = async (
       }</div>
       <h5>${"⭐".repeat(Math.floor(Number(event.rate)))}</h5>
       <h5>${event.description}</h5>
+      ${userNames.length ? `<p><b>Assistants:</b> ${[...userNames].slice(0,5).join(", ")}${userNames.length > 5 ? `${userNames.length - 5}+` : ""}</p>` : ""}
   
       ${
         event.confirmed.includes(userID)
@@ -108,7 +127,7 @@ export const generateEvent = async (
       class="save-btn" data-event-id="${event._id}">Save this!</button>`
         : ""
   }
-    `;
+    ` : loading ? "<h2>Loading...</h2>" : "<h2><i>Has been not possible to get the event info</i></h2>";
   container.appendChild(li);
 
   const saveBtn = li.querySelector(".save-btn");

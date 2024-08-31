@@ -10,7 +10,11 @@ export class FrontFetch {
         logout: "/logout",
         refreshToken: "/refresh-token",
       },
-      put: { addEvent: "/add_event/", promote: "/promote/", update: "/update/" },
+      put: {
+        addEvent: "/add_event/",
+        promote: "/promote/",
+        update: "/update/",
+      },
       delete: "/delete/",
     },
     events: {
@@ -21,15 +25,18 @@ export class FrontFetch {
     },
   };
 
-  static async toFormData(form, files = {}) {
+  static async toFormData(form, files = "") {
     const formData = new FormData();
 
     for (const key in form) {
-      formData.append(key, (typeof form[key] == "object" ? JSON.stringify(form[key]) : form[key]));
+      formData.append(
+        key,
+        typeof form[key] == "object" ? JSON.stringify(form[key]) : form[key]
+      );
     }
 
-    formData.append("image", files);
-    
+    if (files) formData.append("image", files);
+
     return form ? formData : null;
   }
 
@@ -37,9 +44,13 @@ export class FrontFetch {
     try {
       const response = await fetch(url, { ...opts });
       const data = await response.json();
-      
+
+      // console.log({ data, opts });
+
       if (!response.ok) {
-        throw new Error(data.message || data.statusText || "Error en la solicitud");
+        throw new Error(
+          data.message || data.statusText || "Error en la solicitud"
+        );
       }
 
       return data;
@@ -57,26 +68,32 @@ export class FrontFetch {
 
     opts = {
       method: method.toUpperCase(),
-      ...opts
+      ...opts,
     };
 
     let image;
-    if (formData) image = formData?.image;
-    if (image) delete formData.image;
-        
-    if (formData) formData = await (image ? toFormData(formData, image) : toFormData(formData));
-    
-    if (formData) opts.body = formData;
+    if (formData) {
+      image = formData?.image;
+      if (image) delete formData.image;
+
+      if (Object.values(formData).some((v) => typeof v == "object")){
+        formData = await (image
+          ? toFormData(formData, image)
+          : toFormData(formData));
+      } else {
+        formData = JSON.stringify({...formData})
+        opts.headers = {"Content-Type": "application/json"}
+      }
+
+
+
+      opts.body = formData;
+    }
     if (name != "user" || method != "get") opts.credentials = "include";
 
-    const url = `${this.baseUrl}${name}${pMethod}${id || ""}${(id && status) ? "/"+status : ""}`;
-    return await this.Fetch(
-      url,
-      opts
-    );
+    const url = `${this.baseUrl}${name}${pMethod}${id || ""}${id && status ? "/" + status : ""}`;
+    return await this.Fetch(url, opts);
   }
 }
 
-export const frontFetchObj = {
-
-}
+export const frontFetchObj = {};

@@ -2,7 +2,7 @@ import { FrontFetch } from "#utils/Front.fetch";
 import init from "#utils/initWithCookiesSession";
 import Register from "./Register";
 
-export const templateUser = async (user, sameUser, index, itsMe = null) => user
+export const templateUser = async (user, sameUser, index, itsMe = null, loading) => user
     ? `
     <h4>${user.userName}</h4>${" "}<span>[${user.rol}]</span> ${itsMe ? '<a href="#">Me!</a>' : ""}
     <p>Email: ${user.userName}</p>
@@ -21,7 +21,7 @@ export const templateUser = async (user, sameUser, index, itsMe = null) => user
     <button class="removeUsr${sameUser ? "" : "s"}Btn" >Remove</button></div>
     
 `
-    : "<h2><i>Has been not possible to get the user info</i></h2>";
+    : (loading ? "<h2>Loading...</h2>" : "<h2><i>Has been not possible to get the user info</i></h2>");
 
 const Profile = async () => {
   const cookiesValues = await init();
@@ -29,17 +29,24 @@ const Profile = async () => {
   if (!cookiesValues) return template(null);
 
   const { _id: userID } = cookiesValues;
+  let user;
+  let loading = true;
 
-  const user = await FrontFetch.caller({
-    name: "user",
-    method: "get",
-    action: "get",
-    id: userID,
-  });
-
-  const template = await templateUser(user, true);
-  document.querySelector("main").innerHTML = template;
-
+  try {
+    user = await FrontFetch.caller({
+      name: "user",
+      method: "get",
+      action: "get",
+      id: userID,
+    });
+  } catch {
+    console.error(error);
+  } finally {
+    loading = false
+  }
+    const template = await templateUser(user, true, null, null, loading);
+    document.querySelector("main").innerHTML = template;
+    
   const removeBtn = document.querySelector(".removeUsrBtn");
   if (removeBtn) {
     removeBtn.addEventListener("click", async (e) => {

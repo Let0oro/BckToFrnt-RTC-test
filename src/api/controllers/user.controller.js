@@ -128,6 +128,8 @@ const getUsersById = async (req, res, next) => {
 };
 
 const register = async (req, res) => {
+  console.log({ body: req.body });
+
   const { userName, email, password } = req.body;
 
   if (!email || !password || !userName)
@@ -147,34 +149,35 @@ const register = async (req, res) => {
     });
     await newUser.save();
 
+    
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
+      newUser._id
+    );
+    
     const createdUser = await User.findById(newUser._id).select(
       "-password -refreshToken"
     );
+    
 
     if (!createdUser)
       return res.status(500).json({ message: "Something went wrong" });
 
     await checkEvents();
 
-    // const options = {
-    //   httpOnly: false,
-    //   secure: true,
-    //   sameSite: "lax",
-    //   resave: true,
-    //   maxAge: 2600000,
-    // };
-
-    // const token = generateKey(newUser._id);
-    return (
-      res
-        .status(201)
-        // .cookie("token", null, { httpOnly: true, maxAge: (2600000), sameSite: "lax" })
-        // .cookie("token", token, { httpOnly: true, maxAge: (2600000), sameSite: "lax" })
-        // .cookie("email", email, { httpOnly: false, maxAge: (2600000), sameSite: "lax", secure: true })
-        // .cookie("userName", userName, { httpOnly: false, maxAge: (2600000), sameSite: "lax", secure: true })
-        // .cookie("pass", password, { httpOnly: false, maxAge: (2600000), sameSite: "lax", secure: true })
-        .json({ user: createdUser, message: "User created succesfully!" })
-    );
+    return res
+      .status(201)
+      .cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+      })
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+      })
+      .header("Authorization", accessToken)
+      .json({ user: createdUser, message: "User created succesfully!" });
   } catch (error) {
     console.error(error);
     res
@@ -437,17 +440,22 @@ const promoteUser = async (req, res) => {
     if (currentUser.rol != "admin")
       return res.status(401).json({ message: "Unauthorized" });
 
-    const newUser = await User.findByIdAndUpdate(id, { $set: { rol: (userRol == "admin" ? "user" : "admin") }}, {new: true});
+    const newUser = await User.findByIdAndUpdate(
+      id,
+      { $set: { rol: userRol == "admin" ? "user" : "admin" } },
+      { new: true }
+    );
     return res
       .status(201)
-      .json({ message: `User ${user.userName} has been promoted to ${newUser.rol}` });
+      .json({
+        message: `User ${user.userName} has been promoted to ${newUser.rol}`,
+      });
   } catch (error) {
     console.error(error);
     res
       .status(500)
       .json({ message: ("Error promoting user %s", error.message) });
   }
-
 };
 
 module.exports = {
