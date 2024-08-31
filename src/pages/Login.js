@@ -1,55 +1,56 @@
+import { FrontFetch } from "#utils/Front.fetch";
 import Events from "./Events";
 
 const template = () => {
-
-  let cookieObj = document.cookie.replace('%40', '@').split(';').map(v => v.split('=')[1])
-    const [email, name, password] = cookieObj;
+  let cookieObj = document.cookie
+    .replace("%40", "@")
+    .split(";")
+    .map((v) => v.split("=")[1]);
+  const [email, name, password] = cookieObj;
 
   return `<section id="login">
   ${
     !!document.cookie.length
-    ? `<h2>You are already logged<h2>`
-    : `<form>
+      ? `<h2>You are already logged<h2>`
+      : `<form>
     <input type="text" placeholder="Username" id="username"/>
     <input type="email" placeholder="Email" id="email"/>
     <input type="password" id="password" placeholder="Password" />
     <button id="loginbtn">Login</button>
     </form>`
-    }
+  }
     </section>
     `;
-}
+};
 
-export const loginSubmit = async (userName = null, password = null, email = null) => {
+export const loginSubmit = async (
+  userName = null,
+  password = null,
+  email = null
+) => {
   userName = userName || document.querySelector("#username").value;
   password = password || document.querySelector("#password").value;
   email = email || document.querySelector("#email").value;
 
   try {
-    const data = await fetch("http://localhost:3000/api/v1/user/login", {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      method: "POST",
-      body: JSON.stringify({
+    const dataRes = FrontFetch.caller(
+      { name: "user", method: "post", action: "login" },
+      {
         userName,
         email,
         password,
-      }),
-    });
+      }
+    );
 
-    const dataRes = await data.json();
-    if (data.status >= 300) {
-      alert(dataRes.message);
-      return;
+    if (dataRes.user){
+      alert(`Welcome ${userName}`);
+      Events(dataRes.user);
     }
-
-    alert(`Welcome ${userName}`);
-
-    Events(dataRes.user);
   } catch (err) {
-    console.error({message: "Error en login client-side", error: err.message});
+    console.error({
+      message: "Error en login client-side",
+      error: err.message,
+    });
   }
 };
 

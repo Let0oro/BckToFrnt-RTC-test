@@ -1,3 +1,4 @@
+import { FrontFetch } from "#utils/Front.fetch";
 import Events from "./Events";
 
 const template = () => `
@@ -17,33 +18,21 @@ const registerSubmit = async () => {
     const password = document.querySelector("#password").value;
     const email = document.querySelector("#email").value;
 
-    const response = await fetch("http://localhost:3000/api/v1/user/register", {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-      credentials: "include",
-      body: JSON.stringify({
+    const dataRes = await FrontFetch.caller(
+      { name: "user", method: "post", action: "register" },
+      {
         userName: username,
         email,
         password: password,
-      }),
-    });
-    const dataRes = await response.json();
+      }
+    );
 
-    if (response.status >= 300) {
-      alert(dataRes.message);
-      return;
-    }
-
-    if (response.ok) {
-      const {userName, _id, email} = dataRes.user;
-      Events({userName, _id, email});
+    if (dataRes?.user) {
+      const { userName, _id, email } = dataRes.user;
+      Events({ userName, _id, email });
     } else {
-      const errorMessage = await response.json();
-      console.error("Error:", errorMessage);
+      console.log("Error: " + dataRes);
     }
-
   } catch (err) {
     console.error(new Error("Failed to register from app", err.message));
   }
