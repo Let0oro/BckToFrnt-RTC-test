@@ -1,14 +1,10 @@
 import Login from "#pages/Login";
+import { FrontFetch } from "./Front.fetch";
 
 const logout = async () => {
   try {
-    const response = await fetch("http://localhost:3000/api/v1/user/logout", {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      method: "POST",
-    });
+    await FrontFetch.caller({name: "user", method: "post", action: "logout"}, null, { credentials: "include" })
+
     alert("See you soon!");
 
     Login();

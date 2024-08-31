@@ -19,8 +19,8 @@ const reloadPage = async (isFromGeneral) => {
 const handleUpdateEvent = async (userID, eventId, status, mail = null) => {
   try {
     const data = await FrontFetch.caller(
-      { name: "events", method: "put", action: "addEvent", id: eventId, status },
-      JSON.stringify({ attendees: [userID] })
+      { name: "events", method: "put", id: eventId, status },
+      { attendees: [userID] }
     );
 
     if (status == "save" || status == "remove")
@@ -46,7 +46,7 @@ async function handleTicketPurchase(e, event) {
     )
   )
     await FrontFetch.caller(
-      { name: "events", method: "put", action: "addEvent", id: eventID, status: "confirm" },
+      { name: "events", method: "put", id: eventID, status: "confirm" },
       {
         selectedPrice: String(selectedPrice.replaceAll(/[^0-9]/gi, "")),
         selectedTitle,

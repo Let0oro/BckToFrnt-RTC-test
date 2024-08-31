@@ -125,17 +125,6 @@ const createSubmit = async (e) => {
     ticketPrice: prices,
   };
 
-  console.log(
-    Object.values(bodyPost).map((v, i) => Object.keys(bodyPost)[i])
-  );
-  console.log(
-    Object.values(bodyPost).map((v, i) =>
-      !Array.isArray(v)
-        ? !v
-        : (!v.length || v.some((n) => !n)) && Object.keys(bodyPost)[i]
-    )
-  );
-
   if (
     !Object.values(bodyPost).some((v) =>
       typeof !Array.isArray(v) ? !v : !v.length || v.some((n) => !n)

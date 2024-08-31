@@ -385,7 +385,7 @@ const isLoggedIn = async (req, res) => {
     const { accessToken, refreshToken } =
       await generateAccessAndRefreshTokens(userId);
 
-    const user = await User.findById(userId).select("userName email");
+    const user = await User.findById(userId).select("userName email rol");
 
     if (!user) {
       return res.status(404).json({ message: "Usuario no encontrado" });
@@ -469,10 +469,6 @@ const promoteUser = async (req, res) => {
       return res.status(404).json({ message: "This user doesn't exists" });
 
     const { userRol } = user;
-
-    // if (userRol == "admin") {
-    //   return res.status(401).json("This user is already an admin");
-    // }
 
     if (id != currentUserId && currentUser.rol != "admin")
       return res.status(401).json({ message: "Unauthorized" });

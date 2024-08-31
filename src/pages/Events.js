@@ -25,7 +25,6 @@ const getEvents = async (userID = null) => {
   const eventsContainer = document.querySelector("#eventscontainer");
 
   if (eventsContainer) {
-    console.log({events})
     await events.forEach((event) =>
       generateEvent(event, eventsContainer, userID, null, true)
   );
@@ -55,6 +54,8 @@ const Events = async (user = { userName: null, _id: null, rol: null }) => {
       ],
       none: ["loginlink", "registerlink"],
     };
+
+    if (user.rol == "admin") elemsIdStyleTo({"inline-block": ["userlistlink", "profilelink"]});
   } else {
     objIds = {
       "inline-block": ["loginlink", "registerlink", "eventslink"],

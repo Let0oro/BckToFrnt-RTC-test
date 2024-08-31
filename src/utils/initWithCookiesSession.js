@@ -17,8 +17,8 @@ async function checkLoggedInStatus() {
 async function init() {
   const isLoggedIn = await checkLoggedInStatus();
   if (isLoggedIn) {
-    const { userName, _id } = isLoggedIn.user;
-    return { userName, _id };
+    const { userName, _id, rol } = isLoggedIn.user;
+    return { userName, _id, rol };
   }
 }
 

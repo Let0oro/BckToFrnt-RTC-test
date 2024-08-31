@@ -6,6 +6,8 @@ import Register from "#pages/Register";
 import MyEvents from "#pages/MyEvents";
 import logout from "#utils/logout";
 import newEvent from "#pages/newEvent";
+import UserList from "#pages/UserList";
+import Profile from "#pages/Profile";
 
 document.querySelector("#eventslink").addEventListener("click", Events);
 
@@ -17,10 +19,10 @@ document.querySelector("#myeventslink").addEventListener("click", MyEvents);
 
 document.querySelector("#neweventlink").addEventListener("click", newEvent);
 
+document.querySelector("#userlistlink").addEventListener("click", UserList);
+
+document.querySelector("#profilelink").addEventListener("click", Profile);
+
 document.querySelector("#logoutlink").addEventListener("click", logout);
-
-// document.querySelector("#logoutlink").addEventListener("click", logout);
-
-// document.querySelector("#logoutlink").addEventListener("click", logout);
 
 Events();
