@@ -1,3 +1,5 @@
+import Login from "#pages/Login";
+
 export class FrontFetch {
   static baseUrl = "http://localhost:3000/api/v1/";
 
@@ -92,6 +94,7 @@ export class FrontFetch {
     const url = `${this.baseUrl}${name}${pMethod}${id || ""}${id && status ? "/" + status : ""}`;
     const {data, response} = await this.Fetch(url, opts);
     console.log({data, response})
+    if (data == "jwt expired") Login()
     return {data, response};
   }
 }

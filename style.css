@@ -23,6 +23,10 @@ a:hover {
   color: #535bf2;
 }
 
+a.active {
+  color: whitesmoke;
+}
+
 body {
   margin: 0;
   display: flex;
@@ -51,6 +55,7 @@ ul {
   display: inline-flex;
   color: #646cff;
   background-color: #ccc4;
+  text-shadow: 0 0 6px #242424;
   padding: 2px;
   border-radius: 8px;
 }
@@ -83,7 +88,7 @@ ul {
   }
 }
 
-form {
+form.log_sign {
   margin: .5rem;
   display: grid;
   grid-template-columns: repeat(4, min-content) ;
@@ -92,7 +97,7 @@ form {
   align-items: start;
 }
 
-form > div {
+form.log_sign > div {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -104,11 +109,13 @@ h4 {
 
 .error {
   max-width: 80%;
+  margin: 0 auto;
+  font-size: .8rem;
   display: none;
   color: red;
 }
 
-form:has(input:invalid) > button {
+form.log_sign:has(input:invalid) > button {
   display: none;
 }
 
@@ -146,6 +153,73 @@ input:invalid + .error {
 .card {
   padding: 2em;
 }
+
+.event_card {
+  border: 1px solid #535bf299;
+  background-image: radial-gradient(#535bf200 0%, #535bf200 75%, #535bf2aa 100%);
+  position: relative;
+  padding: .8rem 1.6rem;
+  border-radius: 8px;
+  overflow: hidden;
+  perspective: 600px;
+  img {
+    border-radius: 16px;
+  }
+}
+
+@property --angles {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes anim_dialog {
+  0% { --angles: 0deg  }
+  25% { --angles: 45deg}
+  75% { --angles: 225deg}
+  100% { --angles: 360deg }
+}
+
+dialog  {
+  position: fixed;
+  border: none;
+  overflow: visible;
+  background-color: #242424;
+  border-radius: 4px;
+
+}
+
+dialog::backdrop {
+  backdrop-filter: blur(5px);
+}
+
+dialog::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  border-radius: 4px;
+  background-color: #242424;
+  z-index: -10;
+}
+
+dialog::before {
+  content: "";
+  position: absolute;
+  width: 98%;
+  height: 100%;
+  top: 0;
+  left: 0.97%;
+  transform: scale(1.03);
+  border-radius: 4px;
+  background-image: conic-gradient( from var(--angles), #fff 0%, #242424 25%, #242424 50%, #fff 100% );
+  animation: anim_dialog 1000ms infinite;
+  z-index: -100;
+}
+
+
 
 .read-the-docs {
   color: #888;

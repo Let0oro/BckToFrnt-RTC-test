@@ -12,7 +12,7 @@ const template = () => {
   ${
     !!document.cookie.length
       ? `<h2>You are already logged<h2>`
-      : `<form>
+      : `<form class="log_sign">
       <div>
         <input type="text" minlength="4" maxlength="30" placeholder="Username (4 - 30 char)" id="username"/>
         <p class="error" id="username_error">Your name must have 4 - 30 letters</p>

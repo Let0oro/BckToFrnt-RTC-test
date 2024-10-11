@@ -26,3 +26,10 @@ document.querySelector("#profilelink").addEventListener("click", Profile);
 document.querySelector("#logoutlink").addEventListener("click", logout);
 
 Events();
+
+[...document.querySelectorAll("header > a")].forEach((a, i, arr) => {
+  a.addEventListener("click", ({target}) => {
+    arr.forEach((link) => link.classList.remove("active"));
+    target.classList.add("active");
+  });
+});
