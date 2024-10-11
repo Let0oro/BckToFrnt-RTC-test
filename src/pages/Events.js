@@ -16,7 +16,7 @@ const template = (userName = null) => `
 `;
 
 const getEvents = async (userID = null) => {
-  const { events } = await FrontFetch.caller({
+  const { data: {events} } = await FrontFetch.caller({
     name: "events",
     method: "get",
     action: "get",

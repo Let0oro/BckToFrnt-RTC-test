@@ -45,18 +45,16 @@ export class FrontFetch {
       const response = await fetch(url, { ...opts });
       const data = await response.json();
 
-      // console.log({ data, opts });
+      console.log({ url, data, opts });
 
       if (!response.ok) {
-        throw new Error(
-          data.message || data.statusText || "Error en la solicitud"
-        );
+        return {data: data.message || data.statusText || data || "Error en la solicitud", response};
       }
 
-      return data;
+      return {response, data};
     } catch (error) {
       console.error("Fetch error: " + error);
-      throw error;
+      return {response: {status: false, statusText: error}, data: error};
     }
   }
 
@@ -92,7 +90,9 @@ export class FrontFetch {
     if (name != "user" || method != "get") opts.credentials = "include";
 
     const url = `${this.baseUrl}${name}${pMethod}${id || ""}${id && status ? "/" + status : ""}`;
-    return await this.Fetch(url, opts);
+    const {data, response} = await this.Fetch(url, opts);
+    console.log({data, response})
+    return {data, response};
   }
 }
 
