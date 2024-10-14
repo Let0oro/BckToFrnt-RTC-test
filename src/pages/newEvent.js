@@ -1,9 +1,31 @@
+import callModal from "#utils/callModal";
 import { FrontFetch } from "#utils/Front.fetch";
+import notyfication from "#utils/notyfication";
+
+const handleSubmit = async (bodyPost) => {
+  const dataRes = await FrontFetch.caller(
+    { name: "events", method: "post" },
+    { ...bodyPost }
+  );
+
+  if (dataRes) {
+    document
+      .querySelectorAll("form input")
+      .forEach((inp) =>
+        inp.id == "image" ? (inp.files = null) : (inp.value = "")
+      );
+    document.querySelector("form textarea#description").value = "";
+    document
+      .querySelectorAll("form #priceList li")
+      .forEach((inp) => inp.remove());
+    notyfication("success", "Evento publicado con éxito!");
+  }
+};
 
 const template = () => {
   return `
       <section>
-        <form onkeydown="if(event.keyCode === 13) {return false;}" >
+        <form class="newev" onkeydown="if(event.keyCode === 13) {return false;}" >
 
           <fieldset>
             <legend>Title</legend>
@@ -91,6 +113,12 @@ const setButtonList = (list, textInput, numInput) => {
 
     const txtValue = textInput.value;
     const numValue = numInput.value;
+    if (
+      [...list.querySelectorAll("li")]
+        .map(({ innerHTML }) => innerHTML.split(":")[0])
+        .includes(txtValue)
+    ) return notyfication("error", "You can't create two tickets with same title");
+
     if (txtValue.trim().length && Number(numValue)) {
       list.innerHTML += `
           <li>${txtValue.trim()}: ${Number(
@@ -100,11 +128,9 @@ const setButtonList = (list, textInput, numInput) => {
       textInput.value = "";
       numInput.value = 0;
       document.querySelector(".removeLi").addEventListener("click", (e) => {
-        list.remove(e.target.parentElement);
+        e.target.parentElement.remove();
       });
-    } else {
-      alert("Your ticket must have some price and text");
-    }
+    } else notyfication("error", "Your ticket must have some price and text");
   });
 };
 
@@ -130,27 +156,19 @@ const createSubmit = async (e) => {
       typeof !Array.isArray(v) ? !v : !v.length || v.some((n) => !n)
     )
   ) {
-    const dataRes = await FrontFetch.caller(
-      { name: "events", method: "post" },
-      { ...bodyPost }
-    );
-
-    if (dataRes) {
-      document.querySelector("form input").files = null;
-      document.querySelector("form input").value = "";
-    }
-
+    callModal("¿Quieres publicar este evento?", handleSubmit, bodyPost);
   } else {
-    alert(
-      `Tienes que rellenar todos los campos, campos faltantes: [${Object.keys(
-        bodyPost
+    const lackFields = Object.keys(bodyPost)
+      .filter((k) =>
+        typeof bodyPost[k] != "object"
+          ? !bodyPost[k]
+          : !bodyPost[k].length || bodyPost[k].some((n) => !n)
       )
-        .filter((k) =>
-          typeof bodyPost[k] != "object"
-            ? !bodyPost[k]
-            : !bodyPost[k].length || bodyPost[k].some((n) => !n)
-        )
-        .join(", ")}]`
+      .join(", ");
+
+    notyfication(
+      "error",
+      `Tienes que rellenar todos los campos, campos faltantes: [${lackFields}]`
     );
   }
 };

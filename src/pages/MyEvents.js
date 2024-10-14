@@ -1,4 +1,4 @@
-import { generateEvent } from "#utils/eventsUtils";
+import { generateEvent } from "../components/eventList";
 import { FrontFetch } from "#utils/Front.fetch";
 
 const template = () => `
@@ -18,7 +18,7 @@ const template = () => `
 `;
 
 const getMyEvents = async () => {
-  const eventsData = await FrontFetch.caller(
+  const {data: eventsData} = await FrontFetch.caller(
     { name: "events", method: "get", action: "myEvents" },
     null,
     { credentials: "include" }

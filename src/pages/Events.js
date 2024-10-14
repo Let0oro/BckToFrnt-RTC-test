@@ -1,4 +1,4 @@
-import { generateEvent } from "#utils/eventsUtils";
+import { generateEvent } from "../components/eventList";
 import { FrontFetch } from "#utils/Front.fetch";
 import init from "#utils/initWithCookiesSession";
 
@@ -25,7 +25,9 @@ const getEvents = async (userID = null) => {
   const eventsContainer = document.querySelector("#eventscontainer");
 
   if (eventsContainer) {
-    await events.forEach((event) =>
+    // const eventsSorted = await events.sort(({createdAt: a}, {createdAt: b}) => new Date(b).getTime() - new Date(a).getTime());
+    const eventsSorted = await events.sort(({title: a}, {title: b}) => a.localeCompare(b));
+    await eventsSorted.forEach((event) =>
       generateEvent(event, eventsContainer, userID, null, true)
   );
 }

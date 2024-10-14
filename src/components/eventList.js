@@ -1,55 +1,51 @@
 import Events from "#pages/Events";
 import MyEvents from "#pages/MyEvents";
-import { Notyf } from "notyf";
-import { FrontFetch } from "./Front.fetch";
+import { FrontFetch } from "../utils/Front.fetch";
+import notyfication from "#utils/notyfication";
+import callModal from "#utils/callModal";
 
 const reloadPage = async (isFromGeneral) => {
-  setTimeout(() => {
+  setTimeout(async () => {
+    const currentYScroll = window.scrollY;
     if (isFromGeneral) {
-      Events();
+      await Events().then(() => window.scrollTo({top: currentYScroll}));
     } else {
-      MyEvents();
+      await MyEvents().then(() =>window.scrollTo({top: currentYScroll}));
     }
+
   }, 100);
 };
 
-const handleUpdateEvent = async (userID, eventId, status, mail = null) => {
+const handleUpdateEvent = async (isFromGeneral, userID, eventId, status, mail = null) => {
   try {
-    const data = await FrontFetch.caller(
+    await FrontFetch.caller(
       { name: "events", method: "put", id: eventId, status },
       { attendees: [userID] }
     );
 
-    // Notificaciones Notyf
-    if (status == "save" || status == "remove")
-      alert(
-        {
-          save: "Evento guardado en tus eventos",
-          remove: "Se ha cancelado la compra de este evento",
-        }[status]
-      );
+    if (status.length) {
+      notyfication("success", {
+        save: "Evento guardado en tus eventos",
+        remove: "Se ha cancelado la compra de este evento",
+        unsave: "Evento eliminado de guardados"          
+      }[status])
+      }
   } catch (error) {
     console.error("Unexpected error", error);
+  } finally {
+    reloadPage(isFromGeneral)
   }
 };
 
-async function handleTicketPurchase(e, event) {
+async function handleTicketPurchase(e, event, isFromGeneral) {
   e.preventDefault();
   const [selectedTitle, selectedPrice] = e.target.textContent
     .split(": ")
     .map((p) => p.trim());
   const eventID = event._id;
 
-  const notyf = new Notyf();
 
-  const modal = document.querySelector("dialog");
-  const modaltitle = document.querySelector("dialog h3");
-  const buttonYes = document.querySelector("dialog #confirm");
-  const buttonNo = document.querySelector("dialog #close");
-
-  modaltitle.innerHTML = "Do you want to confirm the purchase?";
-  modal.showModal();
-  buttonYes.addEventListener("click", async () => {
+  const ticketPurchFunct = async ( ) => {
     const { response, data } = await FrontFetch.caller(
       { name: "events", method: "put", id: eventID, status: "confirm" },
       {
@@ -59,13 +55,13 @@ async function handleTicketPurchase(e, event) {
     );
 
     if (!response.ok) {
-      notyf.error(data);
+      notyfication("error", data)
     } else {
-      notyf.success(data);
+      notyfication("success", data)
+      reloadPage(isFromGeneral)
     }
-    modal.close();
-  });
-  buttonNo.addEventListener("click", () => modal.close());
+  }
+  callModal("Do you want to confirm the purchase?", ticketPurchFunct)
 }
 
 export const generateEvent = async (
@@ -80,10 +76,11 @@ export const generateEvent = async (
   let userNames;
   let loading = true;
 
+
   try {
     userNames = await Promise.all(
       event.confirmed.map(async (confId) => {
-        const dataUser = await FrontFetch.caller({
+        const {data: dataUser} = await FrontFetch.caller({
           name: "user",
           method: "get",
           action: "get",
@@ -96,6 +93,7 @@ export const generateEvent = async (
     console.error(error);
   } finally {
     loading = false;
+    // console.log({userID, ticketSelected, event, userNames})
   }
 
   li.innerHTML = userNames
@@ -120,7 +118,7 @@ export const generateEvent = async (
           ? event.ticketPrice
               .map(
                 (price, i) =>
-                  `<button class=${"prices-ticket"}>${price[0]}: <span class="tit">${price[1]}€</span></button>`
+                  `<button ${event.confirmed.includes(userID) ? "disabled" : ""} class=${"prices-ticket"}>${price[0]}: <span class="tit">${price[1]}€</span></button>`
               )
               .join(" ")
           : `<button>${ticketSelected[0]}: <span class="tit">${ticketSelected[1]}€</span></button>`
@@ -163,9 +161,7 @@ export const generateEvent = async (
           const eventId = btn.getAttribute("data-event-id");
           const status = ["save", "unsave"][i];
 
-          handleUpdateEvent(userID, eventId, status).then(() => {
-            reloadPage(isFromGeneral);
-          });
+          handleUpdateEvent(isFromGeneral, userID, eventId, status);
         })
     );
   }
@@ -173,13 +169,7 @@ export const generateEvent = async (
   const ticketBtn = li.querySelectorAll(".prices-ticket");
   if (ticketBtn && userID) {
     ticketBtn.forEach((btn) =>
-      btn.addEventListener(
-        "click",
-        (e) => handleTicketPurchase(e, event)
-        // .then(() => {
-        //       reloadPage(isFromGeneral);
-        //     })
-      )
+      btn.addEventListener("click", (e) => handleTicketPurchase(e, event, isFromGeneral))
     );
   }
 
@@ -188,27 +178,6 @@ export const generateEvent = async (
     unRegisterBtn.addEventListener("click", async () => {
       const eventId = unRegisterBtn.getAttribute("data-event-id");
 
-      const notyf = new Notyf();
-
-      const modal = document.querySelector("dialog");
-      const modaltitle = document.querySelector("dialog h3");
-      const buttonYes = document.querySelector("dialog #confirm");
-      const buttonNo = document.querySelector("dialog #close");
-
-      modaltitle.innerHTML = `Do you want to cancel your purchase at  ${event.title}?`;
-      modal.showModal();
-      buttonYes.addEventListener("click", () =>
-        handleUpdateEvent(userID, eventId, "remove")
-      );
-      buttonNo.addEventListener("click", () => modal.close());
-    });
-  }
-
-  // if (confirm(`Do you want to cancel your purchase at ${event.title}?`))
-  //   handleUpdateEvent(userID, eventId, "remove")
-  // .then(() => {
-  //     reloadPage(isFromGeneral);
-  //   });
-  // });
-  // }
+      callModal( `Do you want to cancel your purchase at  ${event.title}?`, handleUpdateEvent, isFromGeneral, userID, eventId, "remove")
+  })}
 };

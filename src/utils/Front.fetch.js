@@ -47,7 +47,7 @@ export class FrontFetch {
       const response = await fetch(url, { ...opts });
       const data = await response.json();
 
-      console.log({ url, data, opts });
+      // console.log({ url, data, opts });
 
       if (!response.ok) {
         return {data: data.message || data.statusText || data || "Error en la solicitud", response};
@@ -93,7 +93,7 @@ export class FrontFetch {
 
     const url = `${this.baseUrl}${name}${pMethod}${id || ""}${id && status ? "/" + status : ""}`;
     const {data, response} = await this.Fetch(url, opts);
-    console.log({data, response})
+    // console.log({data, response})
     if (data == "jwt expired") Login()
     return {data, response};
   }
