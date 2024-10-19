@@ -8,15 +8,20 @@ const reloadPage = async (isFromGeneral) => {
   setTimeout(async () => {
     const currentYScroll = window.scrollY;
     if (isFromGeneral) {
-      await Events().then(() => window.scrollTo({top: currentYScroll}));
+      await Events().then(() => window.scrollTo({ top: currentYScroll }));
     } else {
-      await MyEvents().then(() =>window.scrollTo({top: currentYScroll}));
+      await MyEvents().then(() => window.scrollTo({ top: currentYScroll }));
     }
-
   }, 100);
 };
 
-const handleUpdateEvent = async (isFromGeneral, userID, eventId, status, mail = null) => {
+const handleUpdateEvent = async (
+  isFromGeneral,
+  userID,
+  eventId,
+  status,
+  mail = null
+) => {
   try {
     await FrontFetch.caller(
       { name: "events", method: "put", id: eventId, status },
@@ -24,16 +29,19 @@ const handleUpdateEvent = async (isFromGeneral, userID, eventId, status, mail = 
     );
 
     if (status.length) {
-      notyfication("success", {
-        save: "Evento guardado en tus eventos",
-        remove: "Se ha cancelado la compra de este evento",
-        unsave: "Evento eliminado de guardados"          
-      }[status])
-      }
+      notyfication(
+        "success",
+        {
+          save: "Evento guardado en tus eventos",
+          remove: "Se ha cancelado la compra de este evento",
+          unsave: "Evento eliminado de guardados",
+        }[status]
+      );
+    }
   } catch (error) {
     console.error("Unexpected error", error);
   } finally {
-    reloadPage(isFromGeneral)
+    reloadPage(isFromGeneral);
   }
 };
 
@@ -44,8 +52,7 @@ async function handleTicketPurchase(e, event, isFromGeneral) {
     .map((p) => p.trim());
   const eventID = event._id;
 
-
-  const ticketPurchFunct = async ( ) => {
+  const ticketPurchFunct = async () => {
     const { response, data } = await FrontFetch.caller(
       { name: "events", method: "put", id: eventID, status: "confirm" },
       {
@@ -55,13 +62,13 @@ async function handleTicketPurchase(e, event, isFromGeneral) {
     );
 
     if (!response.ok) {
-      notyfication("error", data)
+      notyfication("error", data);
     } else {
-      notyfication("success", data)
-      reloadPage(isFromGeneral)
+      notyfication("success", data);
+      reloadPage(isFromGeneral);
     }
-  }
-  callModal("Do you want to confirm the purchase?", ticketPurchFunct)
+  };
+  callModal("Do you want to confirm the purchase?", ticketPurchFunct);
 }
 
 export const generateEvent = async (
@@ -76,11 +83,10 @@ export const generateEvent = async (
   let userNames;
   let loading = true;
 
-
   try {
     userNames = await Promise.all(
       event.confirmed.map(async (confId) => {
-        const {data: dataUser} = await FrontFetch.caller({
+        const { data: dataUser } = await FrontFetch.caller({
           name: "user",
           method: "get",
           action: "get",
@@ -124,8 +130,14 @@ export const generateEvent = async (
           : `<button>${ticketSelected[0]}: <span class="tit">${ticketSelected[1]}€</span></button>`
       }</div>
       <h5>${"⭐".repeat(Math.floor(Number(event.rate)))}</h5>
-      <h5>${event.description}</h5>
-      ${userNames.length ? `<p><b>Assistants:</b> ${[...userNames].slice(0, 5).join(", ")}${userNames.length > 5 ? `${userNames.length - 5}+` : ""}</p>` : ""}
+      <p>${event.description}</p>
+      ${
+        userNames.length
+          ? `<p><b>Assistants:</b> 
+      ${[...userNames].slice(0, 5).join(", ")}
+      ${userNames.length > 5 ? `${userNames.length - 5}+` : ""}</p>`
+          : ""
+      }
   
       ${
         event.confirmed.includes(userID)
@@ -169,7 +181,9 @@ export const generateEvent = async (
   const ticketBtn = li.querySelectorAll(".prices-ticket");
   if (ticketBtn && userID) {
     ticketBtn.forEach((btn) =>
-      btn.addEventListener("click", (e) => handleTicketPurchase(e, event, isFromGeneral))
+      btn.addEventListener("click", (e) =>
+        handleTicketPurchase(e, event, isFromGeneral)
+      )
     );
   }
 
@@ -178,6 +192,14 @@ export const generateEvent = async (
     unRegisterBtn.addEventListener("click", async () => {
       const eventId = unRegisterBtn.getAttribute("data-event-id");
 
-      callModal( `Do you want to cancel your purchase at  ${event.title}?`, handleUpdateEvent, isFromGeneral, userID, eventId, "remove")
-  })}
+      callModal(
+        `Do you want to cancel your purchase at  ${event.title}?`,
+        handleUpdateEvent,
+        isFromGeneral,
+        userID,
+        eventId,
+        "remove"
+      );
+    });
+  }
 };

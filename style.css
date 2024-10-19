@@ -162,6 +162,14 @@ input:invalid + .error {
   border-radius: 8px;
   overflow: hidden;
   perspective: 600px;
+
+  & > p {
+    margin: 0.5rem auto;
+    width: 50rem;
+    overflow-wrap: break-word;
+    text-wrap: pretty;
+  }
+
   img {
     border-radius: 16px;
   }

@@ -29,13 +29,12 @@ const template = () => {
 
           <fieldset>
             <legend>Title</legend>
-            <input type="text" require name="title" id="title" placeholder="Título de Evento" />
+            <input type="text" require name="title" minlength="5" maxlength="90" id="title" placeholder="Título de Evento" />
           </fieldset>
           
           <fieldset>
             <legend>Image</legend>
             <div class="file-select" id="imageDiv" >
-                <!-- <input type="url" require name="image" id="image" placeholder="[URL] Portada de Evento" /> -->
                 <input type="file" multiple="false" id="image" require accept="image/png, image/jpeg, image/webg, image/png" name="image" aria-label="Archivo">
             </div>
           </fieldset>
@@ -66,7 +65,7 @@ const template = () => {
 
           <fieldset>
             <legend>Description</legend>
-            <textarea spellcheck="true" name="description" id="description" cols="30" rows="10" placeholder="Description of the event..."></textarea>
+            <textarea spellcheck="true" name="description" id="description"  minlength="10" maxlength="350" cols="30" rows="10" placeholder="Description of the event..."></textarea>
           </fieldset>
 
           <button type="submit" id="createSubmit">Create Event</button>
@@ -117,7 +116,11 @@ const setButtonList = (list, textInput, numInput) => {
       [...list.querySelectorAll("li")]
         .map(({ innerHTML }) => innerHTML.split(":")[0])
         .includes(txtValue)
-    ) return notyfication("error", "You can't create two tickets with same title");
+    )
+      return notyfication(
+        "error",
+        "You can't create two tickets with same title"
+      );
 
     if (txtValue.trim().length && Number(numValue)) {
       list.innerHTML += `
