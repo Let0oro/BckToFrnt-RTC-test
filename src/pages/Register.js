@@ -37,6 +37,7 @@ const registerSubmit = async () => {
     const email = document.querySelector("#email").value;
 
 
+    if (!username || !password || !email) return;
     // showErrorsSync(username, password, email);
 
     const {response, data: dataRes} = await FrontFetch.caller(

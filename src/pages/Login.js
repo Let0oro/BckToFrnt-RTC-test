@@ -51,6 +51,8 @@ export const loginSubmit = async (
   password = password || document.querySelector("#password").value;
   email = email || document.querySelector("#email").value;
 
+  if (!userName || !password || !email) return;
+
   try {
     const {data, response} = await FrontFetch.caller(
       { name: "user", method: "post", action: "login" },
@@ -61,9 +63,19 @@ export const loginSubmit = async (
       }
     );
 
-    if (data.user) {
-      Events(data.user);
+    if (response.ok) {
+      const { userName, _id, email } = dataRes.user;
+      if (data.user) {
+        Events({ userName, _id, email });
+      }    
+    } else {
+      showErrors(dataRes)
+      console.log({dataRes});
+      console.log("Error: " + dataRes);
     }
+
+
+
   } catch (err) {
     console.error({
       message: "Error en login client-side",
