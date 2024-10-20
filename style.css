@@ -295,36 +295,15 @@ footer {
   }
 }
 
-
-
-/* 
-.file-select {
-  position: relative;
-  display: inline-block;
+@media screen and (max-width: 1280px){
+  div#app {
+    max-width: 320px;
+    min-width: 90lvw;
+    padding: .5rem;
+    font-size: clamp(.6rem, 1lvw, 1rem);
+  }
+  div#app * {
+    max-width: 100%;
+    margin: .5rem;
+  }
 }
-
-.file-select::before {
-  background-color: #646cff;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 3px;
-  content: 'Seleccionar';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-}
-
-.file-select input[type="file"] {
-  opacity: 0;
-  width: 200px;
-  height: 32px;
-  display: inline-block;
-}
-
-#image::before {
-  content: 'Seleccionar Imagen';
-} */
