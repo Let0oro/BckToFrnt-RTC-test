@@ -64,18 +64,15 @@ export const loginSubmit = async (
     );
 
     if (response.ok) {
-      const { userName, _id, email } = dataRes.user;
+      const { userName, _id, email } = data.user;
       if (data.user) {
         Events({ userName, _id, email });
       }    
     } else {
-      showErrors(dataRes)
-      console.log({dataRes});
-      console.log("Error: " + dataRes);
+      showErrors(data)
+      console.log({data});
+      console.log("Error: " + data);
     }
-
-
-
   } catch (err) {
     console.error({
       message: "Error en login client-side",

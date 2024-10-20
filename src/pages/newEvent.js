@@ -125,8 +125,8 @@ const setButtonList = (list, textInput, numInput) => {
     if (txtValue.trim().length && Number(numValue)) {
       list.innerHTML += `
           <li>${txtValue.trim()}: ${Number(
-            numValue
-          )}€ <button class="removeLi">✖</button></li>
+        numValue
+      )}€ <button class="removeLi">✖</button></li>
           `;
       textInput.value = "";
       numInput.value = 0;
@@ -154,21 +154,23 @@ const createSubmit = async (e) => {
     ticketPrice: prices,
   };
 
-  if (
-    !Object.values(bodyPost).some((v) =>
-      typeof !Array.isArray(v) ? !v : !v.length || v.some((n) => !n)
-    )
-  ) {
+
+  const { title, image, location, description } = bodyPost;
+
+  const isCorrect = prices.every(p => p)
+    && image?.name
+    && [title, description, location].every((inp) => inp.trim());
+
+  if (isCorrect) {
     callModal("¿Quieres publicar este evento?", handleSubmit, bodyPost);
   } else {
-    const lackFields = Object.keys(bodyPost)
-      .filter((k) =>
-        typeof bodyPost[k] != "object"
-          ? !bodyPost[k]
-          : !bodyPost[k].length || bodyPost[k].some((n) => !n)
-      )
-      .join(", ");
-
+    const lackFields = `${(!title.trim()) ? "title," : ""}
+    ${!image?.name ? "image," : ""}
+    ${!prices || !prices.some(p => p.length) ? "prices," : ""}
+    ${!location.trim() ? "location," : ""}
+    ${!date || date.some(p => !p.length) ? "date," : ""}
+    ${!description.trim() ? "description" : ""}
+    `;
     notyfication(
       "error",
       `Tienes que rellenar todos los campos, campos faltantes: [${lackFields}]`

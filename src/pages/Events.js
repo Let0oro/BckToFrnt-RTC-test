@@ -4,19 +4,19 @@ import init from "#utils/initWithCookiesSession";
 
 const template = (userName = null) => `
   <section id="events">
-    ${
-      !(userName == null)
-        ? `
+    ${!(userName == null)
+    ? `
         <h3>Welcome ${userName}</h3>`
-        : `<h3>Please, log in</h3>`
-    }
+    : `<h3>Please, log in</h3>`
+  }
     <ul id="eventscontainer">
+      <h2 class='load'>Loading events...</h2>
     </ul>
   </section>
 `;
 
 const getEvents = async (userID = null) => {
-  const { data: {events} } = await FrontFetch.caller({
+  const { data: { events } } = await FrontFetch.caller({
     name: "events",
     method: "get",
     action: "get",
@@ -26,11 +26,11 @@ const getEvents = async (userID = null) => {
 
   if (eventsContainer) {
     // const eventsSorted = await events.sort(({createdAt: a}, {createdAt: b}) => new Date(b).getTime() - new Date(a).getTime());
-    const eventsSorted = await events.sort(({title: a}, {title: b}) => a.localeCompare(b));
+    const eventsSorted = await events.sort(({ title: a }, { title: b }) => a.localeCompare(b));
     await eventsSorted.forEach((event) =>
       generateEvent(event, eventsContainer, userID, null, true)
-  );
-}
+    );
+  }
 };
 
 const elemsIdStyleTo = (obj) => {
@@ -57,7 +57,7 @@ const Events = async (user = { userName: null, _id: null, rol: null }) => {
       none: ["loginlink", "registerlink"],
     };
 
-    if (user.rol == "admin") elemsIdStyleTo({"inline-block": ["userlistlink", "profilelink"]});
+    if (user.rol == "admin") elemsIdStyleTo({ "inline-block": ["userlistlink", "profilelink"] });
   } else {
     objIds = {
       "inline-block": ["loginlink", "registerlink", "eventslink"],
