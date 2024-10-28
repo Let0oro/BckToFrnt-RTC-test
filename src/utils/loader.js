@@ -1,0 +1,1 @@
+export default `<span class="loader"></span>`;

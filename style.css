@@ -19,6 +19,7 @@ a {
   color: #646cff;
   text-decoration: inherit;
 }
+
 a:hover {
   color: #535bf2;
 }
@@ -42,7 +43,7 @@ h1 {
   line-height: 1.1;
 }
 
-header > a {
+header>a {
   display: none;
   margin: 0 .5rem;
 }
@@ -66,7 +67,7 @@ ul {
   flex-wrap: wrap;
   justify-content: center;
 
-  & .prices-ticket{
+  & .prices-ticket {
     border: 1px solid transparent;
     padding: 4px 8px;
     border-radius: 4px;
@@ -91,13 +92,13 @@ ul {
 form.log_sign {
   margin: .5rem;
   display: grid;
-  grid-template-columns: repeat(4, min-content) ;
+  grid-template-columns: repeat(4, min-content);
   grid-template-rows: fit-content;
   gap: .5rem;
   align-items: start;
 }
 
-form.log_sign > div {
+form.log_sign>div {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -115,7 +116,7 @@ h4 {
   color: red;
 }
 
-form.log_sign:has(input:invalid) > button {
+form.log_sign:has(input:invalid)>button {
   display: none;
 }
 
@@ -125,7 +126,7 @@ input:invalid {
   border-radius: 2px;
 }
 
-input:invalid + .error {
+input:invalid+.error {
   display: inline-block;
 }
 
@@ -143,9 +144,11 @@ input:invalid + .error {
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.vanilla:hover {
   filter: drop-shadow(0 0 2em #f7df1eaa);
 }
@@ -161,10 +164,12 @@ input:invalid + .error {
   padding: 0;
 }
 
-#events-purchased, #events-saved {
+#events-purchased,
+#events-saved {
   padding: 2rem;
   border: 1px solid #dac50c;
-  border-radius: 4px;;
+  border-radius: 4px;
+  ;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -183,7 +188,7 @@ input:invalid + .error {
   overflow: hidden;
   perspective: 600px;
 
-  & > p {
+  &>p {
     margin: 0.5rem auto;
     width: 50rem;
     overflow-wrap: break-word;
@@ -202,13 +207,24 @@ input:invalid + .error {
 }
 
 @keyframes anim_dialog {
-  0% { --angles: 0deg  }
-  25% { --angles: 45deg}
-  75% { --angles: 225deg}
-  100% { --angles: 360deg }
+  0% {
+    --angles: 0deg
+  }
+
+  25% {
+    --angles: 45deg
+  }
+
+  75% {
+    --angles: 225deg
+  }
+
+  100% {
+    --angles: 360deg
+  }
 }
 
-dialog  {
+dialog {
   position: fixed;
   border: none;
   overflow: visible;
@@ -242,7 +258,7 @@ dialog::before {
   left: 0.97%;
   transform: scale(1.03);
   border-radius: 4px;
-  background-image: conic-gradient( from var(--angles), #fff 0%, #242424 25%, #242424 50%, #fff 100% );
+  background-image: conic-gradient(from var(--angles), #fff 0%, #242424 25%, #242424 50%, #fff 100%);
   animation: anim_dialog 1000ms infinite;
   z-index: -100;
 }
@@ -264,9 +280,11 @@ button {
   cursor: pointer;
   transition: border-color 0.25s;
 }
+
 button:hover {
   border-color: #646cff;
 }
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
@@ -287,21 +305,61 @@ footer {
     color: #213547;
     background-color: #ffffff;
   }
+
   a:hover {
     color: #747bff;
   }
+
   button {
     background-color: #f9f9f9;
   }
 }
 
-@media screen and (max-width: 1280px){
+.loader {
+  width: 48px;
+  height: 48px;
+  display: inline-block;
+  position: relative;
+}
+
+.loader::after,
+.loader::before {
+  content: '';
+  box-sizing: border-box;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid #FFF;
+  position: absolute;
+  left: 0;
+  top: 0;
+  animation: animloader 2s linear infinite;
+}
+
+.loader::after {
+  animation-delay: 1s;
+}
+
+@keyframes animloader {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+@media screen and (max-width: 1280px) {
   div#app {
     max-width: 320px;
     min-width: 90lvw;
     padding: .5rem;
     font-size: clamp(.6rem, 1lvw, 1rem);
   }
+
   div#app * {
     max-width: 100%;
     margin: .5rem;
